@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改地址充值记录')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-recharge-edit" th:object="${bcTransactions}">
+            <input name="id" th:field="*{id}" type="hidden">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">平台ID：</label>
+                        <div class="form-control-static" th:text="*{platformId}">自动生成</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">交易哈希：</label>
+
+                        <div class="form-control-static" th:text="*{txHash}">自动生成</div>
+
+                </div>
+
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">区块链类型：</label>
+
+                        <div class="form-control-static" th:text="*{@dict.getLabel('bc_chain_type', chainType)}">自动生成</div>
+                        
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">币种符号：</label>
+
+                        <div class="form-control-static" th:text="*{tokenSymbol}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">代币合约地址：</label>
+
+                        <div class="form-control-static" th:text="*{tokenContract}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">交易金额：</label>
+
+                        <div class="form-control-static" th:text="*{amount}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">交易方向：</label>
+
+                        <div class="form-control-static" th:text="*{@dict.getLabel('bc_direction', direction)}">自动生成</div>
+
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">发送方地址：</label>
+
+                        <div class="form-control-static" th:text="*{fromAddress}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">接收方地址：</label>
+
+                        <div class="form-control-static" th:text="*{toAddress}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">区块号：</label>
+
+                        <div class="form-control-static" th:text="*{blockNumber}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">是否确认：</label>
+
+                    <div class="form-control-static" th:text="*{@dict.getLabel('bc_has_confirmed', confirmed)}">自动生成</div>
+
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">确认块数量：</label>
+
+                        <div class="form-control-static" th:text="*{confirmations}">自动生成</div>
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">交易状态：</label>
+
+                        <div class="form-control-static" th:text="*{@dict.getLabel('bc_tx_status', txStatus)}">自动生成</div>
+
+
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">交易时间：</label>
+                    <div class="form-control-static" th:text=" ${#dates.format(bcTransactions.detectedTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">确认完成时间：</label>
+                    <div class="form-control-static" th:text=" ${#dates.format(bcTransactions.confirmedTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">回调状态：</label>
+                    <div class="form-control-static" th:text="*{@dict.getLabel('bc_callback_status', callbackStatus)}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">回调时间：</label>
+                    <div class="form-control-static" th:text=" ${#dates.format(bcTransactions.callbackTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+                </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+
+</body>
+</html>

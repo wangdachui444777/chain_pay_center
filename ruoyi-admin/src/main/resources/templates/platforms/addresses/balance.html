@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('地址余额列表')" />
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <input type="hidden" id="addressId" th:value="${addressId}" />
+    <div class="row">
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer" />
+<script th:inline="javascript">
+    var chainTypeDatas = [[${@dict.getType('bc_chain_type')}]];
+    var statusDatas = [[${@dict.getType('bc_gather_status')}]];
+    var prefix = ctx + "platforms/addresses";
+
+    $(function() {
+        var options = {
+            url: prefix + "/balanceList",
+            modalName: "地址余额（币种级别）",
+            queryParams: function(params) {
+                var search = $.table.queryParams(params);
+                search.addressId = $("#addressId").val();  // 传递 addrId
+                return search;
+            },
+            columns: [
+                {
+                    field: 'id',
+                    title: '记录ID',
+                    visible: true
+                },
+                {
+                    field: 'chainType',
+                    title: '区块链类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(chainTypeDatas, value);
+                    }
+                },
+                {
+                    field: 'tokenSymbol',
+                    title: '币种符号'
+                },
+                {
+                    field: 'tokenContract',
+                    title: '代币合约地址'
+                },
+                {
+                    field: 'balance',
+                    title: '币种余额'
+                },
+                {
+                    field: 'balanceUsdtValue',
+                    title: 'USDT的价值'
+                },
+                {
+                    field: 'totalBalance',
+                    title: '累计充值金额'
+                },
+                {
+                    field: 'lastSyncTime',
+                    title: '最近同步时间'
+                },
+                {
+                    field: 'status',
+                    title: '归集状态',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(statusDatas, value);
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+</script>
+</body>
+</html>

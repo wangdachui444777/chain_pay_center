@@ -8,14 +8,13 @@
     <version>4.8.1</version>
 
     <name>ruoyi</name>
-    <url>http://www.ruoyi.vip</url>
-    <description>若依管理系统</description>
+    <description>管理系统</description>
     
     <properties>
         <ruoyi.version>4.8.1</ruoyi.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <java.version>1.8</java.version>
+        <java.version>17</java.version>
         <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
         <spring-boot.version>2.5.15</spring-boot.version>
         <shiro.version>1.13.0</shiro.version>
@@ -34,6 +33,11 @@
         <tomcat.version>9.0.108</tomcat.version>
         <logback.version>1.2.13</logback.version>
         <spring-framework.version>5.3.39</spring-framework.version>
+
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+
+
     </properties>
 
     <!-- 依赖声明 -->
@@ -228,6 +232,117 @@
                 <artifactId>ruoyi-common</artifactId>
                 <version>${ruoyi.version}</version>
             </dependency>
+            <!--波场SDK-->
+            <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>abi</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>core</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>utils</artifactId>
+                <version>0.3.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>okhttp</artifactId>
+                <version>4.9.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okhttp3</groupId>
+                <artifactId>logging-interceptor</artifactId>
+                <version>4.9.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-all</artifactId>
+                <version>1.48.1</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>1.78.1</version>
+            </dependency>
+            <!-- 显式声明 Protobuf 依赖（版本由父 pom 管理）-->
+          <!--  <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>3.25.5</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
+                <version>3.25.5</version>
+            </dependency> -->
+            <!-- TRON Trident -->
+
+            <!--波场SDK-->
+         <!-- <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>abi</artifactId>
+                <version>${trident.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>core</artifactId>
+                <version>${trident.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.tron.trident</groupId>
+                <artifactId>utils</artifactId>
+                <version>${trident.version}</version>
+            </dependency> -->
+
+            <!-- BouncyCastle加密库 -->
+          <!--  <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk15on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency> -->
+            <!-- 强制所有 protobuf 依赖使用统一版本 -->
+          <!--  <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-javalite</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>-->
+            <!--gRPC 依赖（Trident 需要）-->
+            <!-- <dependency>
+                <groupId>io.grpc</groupId>
+                <artifactId>grpc-bom</artifactId>
+                <version>${grpc.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency> -->
+            <!-- SLF4J日志接口 -->
+          <!--  <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>2.0.9</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>1.4.11</version>
+            </dependency> -->
+
 
         </dependencies>
     </dependencyManagement>
@@ -252,7 +367,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.1</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
@@ -261,30 +376,35 @@
             </plugin>
         </plugins>
     </build>
+    <!--
+        <repositories>
+            <repository>
+                <id>jitpack.io</id>
+                <url>https://jitpack.io</url>
+            </repository>
+            <repository>
+                <id>public</id>
+                <name>aliyun nexus</name>
+                <url>https://maven.aliyun.com/repository/public</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+            </repository>
 
-    <repositories>
-        <repository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-        </repository>
-    </repositories>
+        </repositories>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>public</id>
-            <name>aliyun nexus</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
-
-</project>
+        <pluginRepositories>
+            <pluginRepository>
+                <id>public</id>
+                <name>aliyun nexus</name>
+                <url>https://maven.aliyun.com/repository/public</url>
+                <releases>
+                    <enabled>true</enabled>
+                </releases>
+                <snapshots>
+                    <enabled>false</enabled>
+                </snapshots>
+            </pluginRepository>
+        </pluginRepositories>
+    -->
+    </project>

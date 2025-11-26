@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.ruoyi.common.utils.security.CipherUtils;
+import org.apache.shiro.codec.Base64;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -110,6 +113,10 @@ public class TestController extends BaseController
         {
             return R.fail("用户不存在");
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Base64.encodeToString(CipherUtils.generateNewKey(128, "AES").getEncoded()));
     }
 }
 

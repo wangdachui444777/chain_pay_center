@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('区块链提现记录列表')" />
+</head>
+<body class="gray-bg">
+     <div class="container-div">
+        <div class="row">
+            <div class="col-sm-12 search-collapse">
+                <form id="formId">
+                    <div class="select-list">
+                        <ul>
+                            <li>
+                                <label>平台ID：</label>
+                                <input type="text" name="platformId"/>
+                            </li>
+                            <li>
+                                <label>下游单号：</label>
+                                <input type="text" name="requestNo"/>
+                            </li>
+                            <li>
+                                <label>区块链：</label>
+                                <select name="chainType" th:with="type=${@dict.getType('bc_chain_type')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>币种符号：</label>
+                                <input type="text" name="tokenSymbol"/>
+                            </li>
+                            <li>
+                                <label>收款地址：</label>
+                                <input type="text" name="toAddress"/>
+                            </li>
+                            <li>
+                                <label>交易哈希：</label>
+                                <input type="text" name="txHash"/>
+                            </li>
+                            <li>
+                                <label>确认状态：</label>
+                                <select name="confirmed" th:with="type=${@dict.getType('bc_has_confirmed')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>交易状态：</label>
+                                <select name="txStatus" th:with="type=${@dict.getType('bc_tx_status')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>回调状态：</label>
+                                <select name="callbackStatus" th:with="type=${@dict.getType('bc_callback_status')}">
+                                    <option value="">所有</option>
+                                    <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                                </select>
+                            </li>
+                            <li>
+                                <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                                <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                            </li>
+                        </ul>
+                    </div>
+                </form>
+            </div>
+
+            <div class="btn-group-sm" id="toolbar" role="group">
+                <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="trade:withdraw:export">
+                    <i class="fa fa-download"></i> 导出
+                </a>
+            </div>
+            <div class="col-sm-12 select-table table-striped">
+                <table id="bootstrap-table"></table>
+            </div>
+        </div>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var editFlag = [[${@permission.hasPermi('trade:withdraw:edit')}]];
+        var removeFlag = [[${@permission.hasPermi('trade:withdraw:remove')}]];
+        var chainTypeDatas = [[${@dict.getType('bc_chain_type')}]];
+        var tokenSymbolDatas = [[${@dict.getType('bc_token_symbol')}]];
+        var confirmedDatas = [[${@dict.getType('bc_has_confirmed')}]];
+        var txStatusDatas = [[${@dict.getType('bc_tx_status')}]];
+        var callbackStatusDatas = [[${@dict.getType('bc_callback_status')}]];
+        var prefix = ctx + "trade/withdraw";
+
+        $(function() {
+            var options = {
+                url: prefix + "/list",
+                detailUrl: prefix + "/edit/{id}",
+                exportUrl: prefix + "/export",
+                modalName: "区块链提现记录",
+                columns: [{
+                    checkbox: true
+                },
+                {
+                    field: 'id',
+                    title: '编号',
+                    visible: false
+                },
+                {
+                    field: 'platformId',
+                    title: '平台ID'
+                },
+                {
+                    field: 'requestNo',
+                    title: '下游单号',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 8, "open");
+                    }
+                },
+                {
+                    field: 'toAddress',
+                    title: '收款地址',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 8, "open");
+                    }
+                },
+                {
+                    field: 'amount',
+                    title: '提现金额',
+                    width:130,
+                    formatter: function(value, row, index) {
+                        return value+"<br/> ("+row.chainType+"-"+row.tokenSymbol+")";
+                    }
+                },
+                {
+                    field: 'txHash',
+                    title: '交易哈希',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 8, "open");
+                    }
+                },
+                {
+                    field: 'confirmed',
+                    title: '确认状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(confirmedDatas, value);
+                    }
+                },
+                {
+                    field: 'confirmations',
+                    title: '确认数'
+                },
+                {
+                    field: 'txStatus',
+                    title: '交易状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(txStatusDatas, value);
+                    }
+                },
+                {
+                    field: 'detectedTime',
+                    title: '交易时间'
+                },
+                {
+                    field: 'confirmedTime',
+                    title: '确认时间'
+                },
+                {
+                    field: 'callbackStatus',
+                    title: '回调状态',
+                    formatter: function(value, row, index) {
+                       return $.table.selectDictLabel(callbackStatusDatas, value);
+                    }
+                },
+                {
+                    field: 'callbackTime',
+                    title: '回调完成时间'
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs" href="javascript:void(0)" onclick="$.operate.detail(\'' + row.id + '\')"><i class="fa fa-search"></i>查看</a> ');
+                         return actions.join('');
+                    }
+                }]
+            };
+            $.table.init(options);
+        });
+    </script>
+</body>
+</html>

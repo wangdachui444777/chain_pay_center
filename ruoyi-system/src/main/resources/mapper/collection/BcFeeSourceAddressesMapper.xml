@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.BcFeeSourceAddressesMapper">
+    
+    <resultMap type="BcFeeSourceAddresses" id="BcFeeSourceAddressesResult">
+        <result property="id"    column="id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="feeAddress"    column="fee_address"    />
+        <result property="privateKeyEncrypted"    column="private_key_encrypted"    />
+        <result property="lastUsedTime"    column="last_used_time"    />
+        <result property="balance"    column="balance"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBcFeeSourceAddressesVo">
+        select id, platform_id, chain_type, fee_address, private_key_encrypted, last_used_time, balance, status, create_by, update_by, create_time, update_time from bc_fee_source_addresses
+    </sql>
+
+    <select id="selectBcFeeSourceAddressesList" parameterType="BcFeeSourceAddresses" resultMap="BcFeeSourceAddressesResult">
+        <include refid="selectBcFeeSourceAddressesVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectBcFeeSourceAddressesById" parameterType="Long" resultMap="BcFeeSourceAddressesResult">
+        <include refid="selectBcFeeSourceAddressesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertBcFeeSourceAddresses" parameterType="BcFeeSourceAddresses" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_fee_source_addresses
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">platform_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="feeAddress != null and feeAddress != ''">fee_address,</if>
+            <if test="privateKeyEncrypted != null and privateKeyEncrypted != ''">private_key_encrypted,</if>
+            <if test="lastUsedTime != null">last_used_time,</if>
+            <if test="balance != null">balance,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">#{platformId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="feeAddress != null and feeAddress != ''">#{feeAddress},</if>
+            <if test="privateKeyEncrypted != null and privateKeyEncrypted != ''">#{privateKeyEncrypted},</if>
+            <if test="lastUsedTime != null">#{lastUsedTime},</if>
+            <if test="balance != null">#{balance},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBcFeeSourceAddresses" parameterType="BcFeeSourceAddresses">
+        update bc_fee_source_addresses
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="feeAddress != null and feeAddress != ''">fee_address = #{feeAddress},</if>
+            <if test="privateKeyEncrypted != null and privateKeyEncrypted != ''">private_key_encrypted = #{privateKeyEncrypted},</if>
+            <if test="lastUsedTime != null">last_used_time = #{lastUsedTime},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBcFeeSourceAddressesById" parameterType="Long">
+        delete from bc_fee_source_addresses where id = #{id}
+    </delete>
+
+    <delete id="deleteBcFeeSourceAddressesByIds" parameterType="String">
+        delete from bc_fee_source_addresses where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

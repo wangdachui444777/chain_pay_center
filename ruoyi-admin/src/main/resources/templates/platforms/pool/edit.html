@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('查看临时地址')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-pool-edit" th:object="${addressPool}">
+            <input name="id" th:field="*{id}" type="hidden">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">区块链：</label>
+                    <span class="form-control-static" th:text="*{@dict.getLabel('bc_chain_type', chainType)}"></span>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">区块链地址：</label>
+                    <div class="form-control-static" th:text="*{address}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label ">私钥(加密后)：</label>
+                    <div  style="word-break: break-all; white-space: normal;" th:text="*{privateKey}">自动生成</div>
+                </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "platforms/pool";
+        $("#form-pool-edit").validate({
+            focusCleanup: true
+        });
+
+
+    </script>
+</body>
+</html>

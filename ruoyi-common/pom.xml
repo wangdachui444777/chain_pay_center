@@ -36,10 +36,28 @@
         </dependency>
         
         <!-- Shiro使用EhCache缓存框架 -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.shiro</groupId>
             <artifactId>shiro-ehcache</artifactId>
-        </dependency>
+        </dependency>--> 
+        <!-- shiro整合redis -->
+    <dependency>
+        <groupId>org.crazycake</groupId>
+        <artifactId>shiro-redis</artifactId>
+        <version>3.3.1</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <!-- springboot整合redis -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
 
         <!-- pagehelper 分页插件 -->
         <dependency>

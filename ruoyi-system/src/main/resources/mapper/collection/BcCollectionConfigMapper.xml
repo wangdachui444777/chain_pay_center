@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.BcCollectionConfigMapper">
+    
+    <resultMap type="BcCollectionConfig" id="BcCollectionConfigResult">
+        <result property="id"    column="id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="targetAddress"    column="target_address"    />
+        <result property="minCollectAmount"    column="min_collect_amount"    />
+        <result property="enableAutoCollect"    column="enable_auto_collect"    />
+        <result property="tokenScope"    column="token_scope"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBcCollectionConfigVo">
+        select id, platform_id, chain_type, target_address, min_collect_amount, enable_auto_collect, token_scope, create_by, update_by, create_time, update_time from bc_collection_config
+    </sql>
+
+    <select id="selectBcCollectionConfigList" parameterType="BcCollectionConfig" resultMap="BcCollectionConfigResult">
+        <include refid="selectBcCollectionConfigVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="targetAddress != null  and targetAddress != ''"> and target_address = #{targetAddress}</if>
+            <if test="minCollectAmount != null "> and min_collect_amount = #{minCollectAmount}</if>
+            <if test="enableAutoCollect != null "> and enable_auto_collect = #{enableAutoCollect}</if>
+            <if test="tokenScope != null  and tokenScope != ''"> and token_scope = #{tokenScope}</if>
+        </where>
+    </select>
+    
+    <select id="selectBcCollectionConfigById" parameterType="Long" resultMap="BcCollectionConfigResult">
+        <include refid="selectBcCollectionConfigVo"/>
+        where id = #{id}
+    </select>
+    <select id="getCollectionConfigByplatformId" parameterType="Long" resultMap="BcCollectionConfigResult">
+        <include refid="selectBcCollectionConfigVo"/>
+        where platform_id = #{platformId}
+    </select>
+
+
+    <insert id="insertBcCollectionConfig" parameterType="BcCollectionConfig" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_collection_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">platform_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="targetAddress != null and targetAddress != ''">target_address,</if>
+            <if test="minCollectAmount != null">min_collect_amount,</if>
+            <if test="enableAutoCollect != null">enable_auto_collect,</if>
+            <if test="tokenScope != null and tokenScope != ''">token_scope,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">#{platformId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="targetAddress != null and targetAddress != ''">#{targetAddress},</if>
+            <if test="minCollectAmount != null">#{minCollectAmount},</if>
+            <if test="enableAutoCollect != null">#{enableAutoCollect},</if>
+            <if test="tokenScope != null and tokenScope != ''">#{tokenScope},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBcCollectionConfig" parameterType="BcCollectionConfig">
+        update bc_collection_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="targetAddress != null and targetAddress != ''">target_address = #{targetAddress},</if>
+            <if test="minCollectAmount != null">min_collect_amount = #{minCollectAmount},</if>
+            <if test="enableAutoCollect != null">enable_auto_collect = #{enableAutoCollect},</if>
+            <if test="tokenScope != null and tokenScope != ''">token_scope = #{tokenScope},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBcCollectionConfigById" parameterType="Long">
+        delete from bc_collection_config where id = #{id}
+    </delete>
+
+    <delete id="deleteBcCollectionConfigByIds" parameterType="String">
+        delete from bc_collection_config where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.BcConsolidationDetailMapper">
+    
+    <resultMap type="BcConsolidationDetail" id="BcConsolidationDetailResult">
+        <result property="id"    column="id"    />
+        <result property="batchNo"    column="batch_no"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="addressBalanceId"    column="address_balance_id"    />
+        <result property="addressId"    column="address_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="fromAddress"    column="from_address"    />
+        <result property="toAddress"    column="to_address"    />
+        <result property="tokenSymbol"    column="token_symbol"    />
+        <result property="tokenContract"    column="token_contract"    />
+        <result property="amount"    column="amount"    />
+        <result property="gasFeeSent"    column="gas_fee_sent"    />
+        <result property="gasFeeUsed"    column="gas_fee_used"    />
+        <result property="gasBlockNumber"    column="gas_block_number"    />
+        <result property="gasTxHash"    column="gas_tx_hash"    />
+        <result property="gasTxStatus"    column="gas_tx_status"    />
+        <result property="gasSendTime"    column="gas_send_time"    />
+        <result property="txHash"    column="tx_hash"    />
+        <result property="blockNumber"    column="block_number"    />
+        <result property="txStatus"    column="tx_status"    />
+        <result property="confirmCount"    column="confirm_count"    />
+        <result property="confirmTime"    column="confirm_time"    />
+        <result property="retryCount"    column="retry_count"    />
+        <result property="errorMsg"    column="error_msg"    />
+        <result property="status"    column="status"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="completeTime"    column="complete_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBcConsolidationDetailVo">
+        select id, batch_no, platform_id, address_balance_id,address_id, chain_type, from_address, to_address, token_symbol, token_contract, amount, gas_fee_sent, gas_fee_used, gas_tx_hash,gas_block_number, gas_tx_status, gas_send_time, tx_hash,block_number,tx_status, confirm_count, confirm_time, retry_count, error_msg, status, start_time, complete_time, create_time, update_time from bc_consolidation_detail
+    </sql>
+
+    <select id="selectBcConsolidationDetailList" parameterType="BcConsolidationDetail" resultMap="BcConsolidationDetailResult">
+        <include refid="selectBcConsolidationDetailVo"/>
+        <where>  
+            <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="addressBalanceId != null "> and address_balance_id = #{addressBalanceId}</if>
+            <if test="addressId != null "> and address_id = #{addressId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="fromAddress != null  and fromAddress != ''"> and from_address = #{fromAddress}</if>
+            <if test="toAddress != null  and toAddress != ''"> and to_address = #{toAddress}</if>
+            <if test="tokenSymbol != null  and tokenSymbol != ''"> and token_symbol = #{tokenSymbol}</if>
+            <if test="tokenContract != null  and tokenContract != ''"> and token_contract = #{tokenContract}</if>
+            <if test="amount != null "> and amount = #{amount}</if>
+            <if test="gasFeeSent != null "> and gas_fee_sent = #{gasFeeSent}</if>
+            <if test="gasFeeUsed != null "> and gas_fee_used = #{gasFeeUsed}</if>
+            <if test="gasTxHash != null  and gasTxHash != ''"> and gas_tx_hash = #{gasTxHash}</if>
+            <if test="gasTxStatus != null  and gasTxStatus != ''"> and gas_tx_status = #{gasTxStatus}</if>
+            <if test="gasSendTime != null "> and gas_send_time = #{gasSendTime}</if>
+            <if test="txHash != null  and txHash != ''"> and tx_hash = #{txHash}</if>
+            <if test="txStatus != null  and txStatus != ''"> and tx_status = #{txStatus}</if>
+            <if test="confirmCount != null "> and confirm_count = #{confirmCount}</if>
+            <if test="confirmTime != null "> and confirm_time = #{confirmTime}</if>
+            <if test="retryCount != null "> and retry_count = #{retryCount}</if>
+            <if test="errorMsg != null  and errorMsg != ''"> and error_msg = #{errorMsg}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="startTime != null "> and start_time = #{startTime}</if>
+            <if test="completeTime != null "> and complete_time = #{completeTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectBcConsolidationDetailById" parameterType="Long" resultMap="BcConsolidationDetailResult">
+        <include refid="selectBcConsolidationDetailVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectBatchNoByStatus" resultType="string">
+        select batch_no
+        from bc_consolidation_detail
+        <where>
+            <if test="gasTxStatus != null">
+                and gas_tx_status = #{gasTxStatus}
+            </if>
+            <if test="txStatus != null ">
+                and tx_status = #{txStatus}
+            </if>
+        </where>
+        group by batch_no
+    </select>
+
+    <select id="selectGasListByBatchNo"  resultMap="BcConsolidationDetailResult">
+        <include refid="selectBcConsolidationDetailVo"/>
+        <where>
+            <if test="batchNo != null and batchNo != ''">
+                and batch_no = #{batchNo}
+            </if>
+            <if test="chainType != null and chainType != ''">
+                and chain_type = #{chainType}
+            </if>
+        </where>
+        order by id
+    </select>
+
+
+    <insert id="insertBcConsolidationDetail" parameterType="BcConsolidationDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_consolidation_detail
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null and batchNo != ''">batch_no,</if>
+            <if test="platformId != null">platform_id,</if>
+            <if test="addressBalanceId != null">address_balance_id,</if>
+            <if test="addressId != null ">address_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="fromAddress != null and fromAddress != ''">from_address,</if>
+            <if test="toAddress != null and toAddress != ''">to_address,</if>
+            <if test="tokenSymbol != null">token_symbol,</if>
+            <if test="tokenContract != null">token_contract,</if>
+            <if test="amount != null">amount,</if>
+            <if test="gasFeeSent != null">gas_fee_sent,</if>
+            <if test="gasFeeUsed != null">gas_fee_used,</if>
+            <if test="gasTxHash != null">gas_tx_hash,</if>
+            <if test="gasBlockNumber != null">gas_block_number,</if>
+            <if test="gasTxStatus != null">gas_tx_status,</if>
+            <if test="gasSendTime != null">gas_send_time,</if>
+            <if test="txHash != null">tx_hash,</if>
+            <if test="blockNumber != null">block_number,</if>
+            <if test="txStatus != null">tx_status,</if>
+            <if test="confirmCount != null">confirm_count,</if>
+            <if test="confirmTime != null">confirm_time,</if>
+            <if test="retryCount != null">retry_count,</if>
+            <if test="errorMsg != null">error_msg,</if>
+            <if test="status != null and status != ''">status,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="completeTime != null">complete_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="batchNo != null and batchNo != ''">#{batchNo},</if>
+            <if test="platformId != null">#{platformId},</if>
+            <if test="addressBalanceId != null">#{addressBalanceId},</if>
+            <if test="addressId != null ">#{addressId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="fromAddress != null and fromAddress != ''">#{fromAddress},</if>
+            <if test="toAddress != null and toAddress != ''">#{toAddress},</if>
+            <if test="tokenSymbol != null">#{tokenSymbol},</if>
+            <if test="tokenContract != null">#{tokenContract},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="gasFeeSent != null">#{gasFeeSent},</if>
+            <if test="gasFeeUsed != null">#{gasFeeUsed},</if>
+            <if test="gasTxHash != null">#{gasTxHash},</if>
+            <if test="gasBlockNumber != null">#{gasBlockNumber},</if>
+            <if test="gasTxStatus != null">#{gasTxStatus},</if>
+            <if test="gasSendTime != null">#{gasSendTime},</if>
+            <if test="txHash != null">#{txHash},</if>
+            <if test="blockNumber != null">#{blockNumber},</if>
+            <if test="txStatus != null">#{txStatus},</if>
+            <if test="confirmCount != null">#{confirmCount},</if>
+            <if test="confirmTime != null">#{confirmTime},</if>
+            <if test="retryCount != null">#{retryCount},</if>
+            <if test="errorMsg != null">#{errorMsg},</if>
+            <if test="status != null and status != ''">#{status},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="completeTime != null">#{completeTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+    <insert id="batchInsertConsolidationDetail" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_consolidation_detail (
+        batch_no,
+        platform_id,
+        address_balance_id,
+        address_id,
+        chain_type,
+        from_address,
+        to_address,
+        token_symbol,
+        token_contract,
+        amount,
+        start_time,
+        create_time
+        )
+        values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.batchNo},
+            #{item.platformId},
+            #{item.addressBalanceId},
+            #{item.addressId},
+            #{item.chainType},
+            #{item.fromAddress},
+            #{item.toAddress},
+            #{item.tokenSymbol},
+            #{item.tokenContract},
+            #{item.amount},
+            #{item.startTime},
+            #{item.createTime}
+            )
+        </foreach>
+    </insert>
+    <update id="updateBcConsolidationDetail" parameterType="BcConsolidationDetail">
+        update bc_consolidation_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="batchNo != null and batchNo != ''">batch_no = #{batchNo},</if>
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="addressBalanceId != null">address_balance_id = #{addressBalanceId},</if>
+            <if test="addressId != null ">address_id=#{addressId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="fromAddress != null and fromAddress != ''">from_address = #{fromAddress},</if>
+            <if test="toAddress != null and toAddress != ''">to_address = #{toAddress},</if>
+            <if test="tokenSymbol != null">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="gasFeeSent != null">gas_fee_sent = #{gasFeeSent},</if>
+            <if test="gasFeeUsed != null">gas_fee_used = #{gasFeeUsed},</if>
+            <if test="gasTxHash != null">gas_tx_hash = #{gasTxHash},</if>
+            <if test="gasBlockNumber != null">gas_block_number=#{gasBlockNumber},</if>
+            <if test="gasTxStatus != null">gas_tx_status = #{gasTxStatus},</if>
+            <if test="gasSendTime != null">gas_send_time = #{gasSendTime},</if>
+            <if test="txHash != null">tx_hash = #{txHash},</if>
+            <if test="blockNumber != null">block_number=#{blockNumber},</if>
+            <if test="txStatus != null">tx_status = #{txStatus},</if>
+            <if test="confirmCount != null">confirm_count = #{confirmCount},</if>
+            <if test="confirmTime != null">confirm_time = #{confirmTime},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="errorMsg != null">error_msg = #{errorMsg},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateByBatchNoAndAddrId" parameterType="BcConsolidationDetail">
+        update bc_consolidation_detail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="gasFeeSent != null">gas_fee_sent = #{gasFeeSent},</if>
+            <if test="gasFeeUsed != null">gas_fee_used = #{gasFeeUsed},</if>
+            <if test="gasTxHash != null">gas_tx_hash = #{gasTxHash},</if>
+            <if test="gasBlockNumber != null">gas_block_number=#{gasBlockNumber},</if>
+            <if test="gasTxStatus != null">gas_tx_status = #{gasTxStatus},</if>
+            <if test="gasSendTime != null">gas_send_time = #{gasSendTime},</if>
+            <if test="txHash != null">tx_hash = #{txHash},</if>
+            <if test="blockNumber != null">block_number=#{blockNumber},</if>
+            <if test="txStatus != null">tx_status = #{txStatus},</if>
+            <if test="confirmCount != null">confirm_count = #{confirmCount},</if>
+            <if test="confirmTime != null">confirm_time = #{confirmTime},</if>
+            <if test="retryCount != null">retry_count = #{retryCount},</if>
+            <if test="errorMsg != null">error_msg = #{errorMsg},</if>
+            <if test="status != null and status != ''">status = #{status},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="completeTime != null">complete_time = #{completeTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+       <where>
+           <if test="batchNo != null  and batchNo != ''"> and batch_no = #{batchNo}</if>
+           <if test="platformId != null "> and platform_id = #{platformId}</if>
+           <if test="addressBalanceId != null "> and address_balance_id = #{addressBalanceId}</if>
+           <if test="addressId != null "> and address_id = #{addressId}</if>
+           <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+       </where>
+    </update>
+
+    <delete id="deleteBcConsolidationDetailById" parameterType="Long">
+        delete from bc_consolidation_detail where id = #{id}
+    </delete>
+
+    <delete id="deleteBcConsolidationDetailByIds" parameterType="String">
+        delete from bc_consolidation_detail where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

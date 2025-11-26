@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.BcWithdrawRecordMapper">
+    
+    <resultMap type="BcWithdrawRecord" id="BcWithdrawRecordResult">
+        <result property="id"    column="id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="requestNo"    column="request_no"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="tokenSymbol"    column="token_symbol"    />
+        <result property="tokenContract"    column="token_contract"    />
+        <result property="fromAddress"    column="from_address"    />
+        <result property="toAddress"    column="to_address"    />
+        <result property="amount"    column="amount"    />
+        <result property="txHash"    column="tx_hash"    />
+        <result property="blockNumber"    column="block_number"    />
+        <result property="confirmed"    column="confirmed"    />
+        <result property="confirmations"    column="confirmations"    />
+        <result property="txStatus"    column="tx_status"    />
+        <result property="detectedTime"    column="detected_time"    />
+        <result property="confirmedTime"    column="confirmed_time"    />
+        <result property="callbackStatus"    column="callback_status"    />
+        <result property="callbackTime"    column="callback_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectBcWithdrawRecordVo">
+        select id, platform_id, request_no, chain_type, token_symbol, token_contract, from_address, to_address, amount, tx_hash,block_number,confirmed, confirmations, tx_status, detected_time, confirmed_time, callback_status, callback_time, create_time, update_time from bc_withdraw_record
+    </sql>
+
+    <select id="selectBcWithdrawRecordList" parameterType="BcWithdrawRecord" resultMap="BcWithdrawRecordResult">
+        <include refid="selectBcWithdrawRecordVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="requestNo != null  and requestNo != ''"> and request_no = #{requestNo}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="tokenSymbol != null  and tokenSymbol != ''"> and token_symbol = #{tokenSymbol}</if>
+            <if test="toAddress != null  and toAddress != ''"> and to_address = #{toAddress}</if>
+            <if test="txHash != null  and txHash != ''"> and tx_hash = #{txHash}</if>
+            <if test="confirmed != null  and confirmed != ''"> and confirmed = #{confirmed}</if>
+            <if test="confirmations != null "> and confirmations = #{confirmations}</if>
+            <if test="txStatus != null  and txStatus != ''"> and tx_status = #{txStatus}</if>
+            <if test="detectedTime != null "> and detected_time = #{detectedTime}</if>
+            <if test="confirmedTime != null "> and confirmed_time = #{confirmedTime}</if>
+            <if test="callbackStatus != null  and callbackStatus != ''"> and callback_status = #{callbackStatus}</if>
+            <if test="callbackTime != null "> and callback_time = #{callbackTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectBcWithdrawRecordById" parameterType="Long" resultMap="BcWithdrawRecordResult">
+        <include refid="selectBcWithdrawRecordVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertBcWithdrawRecord" parameterType="BcWithdrawRecord" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_withdraw_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">platform_id,</if>
+            <if test="requestNo != null and requestNo != ''">request_no,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol,</if>
+            <if test="tokenContract != null">token_contract,</if>
+            <if test="fromAddress != null and fromAddress != ''">from_address,</if>
+            <if test="toAddress != null and toAddress != ''">to_address,</if>
+            <if test="amount != null">amount,</if>
+            <if test="txHash != null">tx_hash,</if>
+            <if test="blockNumber != null">block_number,</if>
+            <if test="confirmed != null and confirmed != ''">confirmed,</if>
+            <if test="confirmations != null">confirmations,</if>
+            <if test="txStatus != null">tx_status,</if>
+            <if test="detectedTime != null">detected_time,</if>
+            <if test="confirmedTime != null">confirmed_time,</if>
+            <if test="callbackStatus != null and callbackStatus != ''">callback_status,</if>
+            <if test="callbackTime != null">callback_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">#{platformId},</if>
+            <if test="requestNo != null and requestNo != ''">#{requestNo},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">#{tokenSymbol},</if>
+            <if test="tokenContract != null">#{tokenContract},</if>
+            <if test="fromAddress != null and fromAddress != ''">#{fromAddress},</if>
+            <if test="toAddress != null and toAddress != ''">#{toAddress},</if>
+            <if test="amount != null">#{amount},</if>
+            <if test="txHash != null">#{txHash},</if>
+            <if test="blockNumber != null">#{blockNumber},</if>
+            <if test="confirmed != null and confirmed != ''">#{confirmed},</if>
+            <if test="confirmations != null">#{confirmations},</if>
+            <if test="txStatus != null">#{txStatus},</if>
+            <if test="detectedTime != null">#{detectedTime},</if>
+            <if test="confirmedTime != null">#{confirmedTime},</if>
+            <if test="callbackStatus != null and callbackStatus != ''">#{callbackStatus},</if>
+            <if test="callbackTime != null">#{callbackTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBcWithdrawRecord" parameterType="BcWithdrawRecord">
+        update bc_withdraw_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="requestNo != null and requestNo != ''">request_no = #{requestNo},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="fromAddress != null and fromAddress != ''">from_address = #{fromAddress},</if>
+            <if test="toAddress != null and toAddress != ''">to_address = #{toAddress},</if>
+            <if test="amount != null">amount = #{amount},</if>
+            <if test="txHash != null">tx_hash = #{txHash},</if>
+            <if test="blockNumber != null">block_number=#{blockNumber},</if>
+            <if test="confirmed != null and confirmed != ''">confirmed = #{confirmed},</if>
+            <if test="confirmations != null">confirmations = #{confirmations},</if>
+            <if test="txStatus != null">tx_status = #{txStatus},</if>
+            <if test="detectedTime != null">detected_time = #{detectedTime},</if>
+            <if test="confirmedTime != null">confirmed_time = #{confirmedTime},</if>
+            <if test="callbackStatus != null and callbackStatus != ''">callback_status = #{callbackStatus},</if>
+            <if test="callbackTime != null">callback_time = #{callbackTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBcWithdrawRecordById" parameterType="Long">
+        delete from bc_withdraw_record where id = #{id}
+    </delete>
+
+    <delete id="deleteBcWithdrawRecordByIds" parameterType="String">
+        delete from bc_withdraw_record where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

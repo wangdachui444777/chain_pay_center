@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.AddressPoolMapper">
+    
+    <resultMap type="AddressPool" id="AddressPoolResult">
+        <result property="id"    column="id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="address"    column="address"    />
+        <result property="privateKey"    column="private_key"    />
+    </resultMap>
+
+    <sql id="selectAddressPoolVo">
+        select id, chain_type, address, private_key from bc_address_pool
+    </sql>
+
+    <select id="selectAddressPoolList" parameterType="AddressPool" resultMap="AddressPoolResult">
+        <include refid="selectAddressPoolVo"/>
+        <where>  
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+        </where>
+    </select>
+    
+    <select id="selectAddressPoolById" parameterType="Long" resultMap="AddressPoolResult">
+        <include refid="selectAddressPoolVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="countByChainType" resultType="int">
+        SELECT COUNT(id) FROM bc_address_pool WHERE chain_type = #{chainType}
+    </select>
+
+    <select id="selectByChainTypes" resultMap="AddressPoolResult">
+        <include refid="selectAddressPoolVo"/>
+        WHERE chain_type = #{chainType}
+        ORDER BY id ASC
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+    <insert id="batchInsertAddressPool">
+        INSERT INTO bc_address_pool (chain_type, address, private_key)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.chainType}, #{item.address}, #{item.privateKey})
+        </foreach>
+    </insert>
+
+    <insert id="insertAddressPool" parameterType="AddressPool" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_address_pool
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="privateKey != null and privateKey != ''">private_key,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="privateKey != null and privateKey != ''">#{privateKey},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAddressPool" parameterType="AddressPool">
+        update bc_address_pool
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="privateKey != null and privateKey != ''">private_key = #{privateKey},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAddressPoolById" parameterType="Long">
+        delete from bc_address_pool where id = #{id}
+    </delete>
+
+    <delete id="deleteAddressPoolByIds" parameterType="String">
+        delete from bc_address_pool where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改区块链提现记录')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-withdraw-edit" th:object="${bcWithdrawRecord}">
+            <input name="id" th:field="*{id}" type="hidden">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">平台ID：</label>
+                <div class="form-control-static" th:text="*{platformId}">自动生成</div>
+            </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">下游单号：</label>
+                    <div class="form-control-static" th:text="*{requestNo}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">区块链：</label>
+                    <div class="form-control-static" th:text="*{@dict.getLabel('bc_chain_type', chainType)}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">币种符号：</label>
+                    <div class="form-control-static" th:text="*{tokenSymbol}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">合约地址：</label>
+                    <div class="form-control-static" th:text="*{tokenContract}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">付款地址：</label>
+                    <div class="form-control-static" th:text="*{fromAddress}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">收款地址：</label>
+                    <div class="form-control-static" th:text="*{toAddress}">自动生成</div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-3 control-label is-required">提现金额：</label>
+                    <div class="form-control-static" th:text="*{amount}">自动生成</div>
+                </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">交易哈希：</label>
+                <div class="form-control-static" th:text="*{txHash}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label is-required">确认状态：</label>
+                <div class="form-control-static" th:text="*{@dict.getLabel('bc_has_confirmed', confirmed)}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">确认数：</label>
+                <div class="form-control-static" th:text="*{confirmations}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">交易状态：</label>
+                <div class="form-control-static" th:text="*{@dict.getLabel('bc_tx_status', txStatus)}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label">交易时间：</label>
+                <div class="form-control-static" th:text=" ${#dates.format(bcWithdrawRecord.detectedTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">确认时间：</label>
+                <div class="form-control-static" th:text=" ${#dates.format(bcWithdrawRecord.confirmedTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">回调状态：</label>
+                <div class="form-control-static" th:text="*{@dict.getLabel('bc_callback_status', callbackStatus)}">自动生成</div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">回调时间：</label>
+                <div class="form-control-static" th:text=" ${#dates.format(bcWithdrawRecord.callbackTime, 'yyyy-MM-dd HH:mm:ss')}">自动生成</div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "trade/withdraw";
+    </script>
+</body>
+</html>

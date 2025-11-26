@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.UserAddressesMapper">
+    
+    <resultMap type="UserAddresses" id="UserAddressesResult">
+        <result property="id"    column="id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="address"    column="address"    />
+        <result property="privateKey"    column="private_key"    />
+        <result property="lastSyncTime"    column="last_sync_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectUserAddressesVo">
+        select id, platform_id, user_id, chain_type, address, private_key, last_sync_time, create_time, update_time from bc_user_addresses
+    </sql>
+
+    <select id="selectUserAddressesList" parameterType="UserAddresses" resultMap="UserAddressesResult">
+        <include refid="selectUserAddressesVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="userId != null  and userId != ''"> and user_id = #{userId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="address != null  and address != ''"> and address = #{address}</if>
+        </where>
+    </select>
+
+    <select id="selectBatchAfterId"  resultMap="UserAddressesResult">
+        <include refid="selectUserAddressesVo"/>
+        <where>
+            <if test="chainType != null"> AND chain_type = #{chainType} </if>
+            <if test="platformId != null and platformId>0"> AND platform_id = #{platformId} </if>
+            AND id &gt; #{lastId}
+        </where>
+        ORDER BY id ASC
+        LIMIT #{batchSize}
+    </select>
+
+    <select id="selectUserAddressesById" parameterType="Long" resultMap="UserAddressesResult">
+        <include refid="selectUserAddressesVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectUserAddressesMaxId" parameterType="Long" resultMap="UserAddressesResult">
+        <include refid="selectUserAddressesVo"/>
+        ORDER BY id desc limit 1
+    </select>
+
+
+    <insert id="insertUserAddresses" parameterType="UserAddresses" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_user_addresses
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">platform_id,</if>
+            <if test="userId != null and userId != ''">user_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="address != null and address != ''">address,</if>
+            <if test="privateKey != null">private_key,</if>
+            <if test="lastSyncTime != null">last_sync_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">#{platformId},</if>
+            <if test="userId != null and userId != ''">#{userId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="address != null and address != ''">#{address},</if>
+            <if test="privateKey != null">#{privateKey},</if>
+            <if test="lastSyncTime != null">#{lastSyncTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO bc_user_addresses (platform_id,user_id,chain_type, address, private_key,create_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.platformId},#{item.userId},#{item.chainType}, #{item.address}, #{item.privateKey},#{item.createTime})
+        </foreach>
+    </insert>
+    <update id="updateUserAddresses" parameterType="UserAddresses">
+        update bc_user_addresses
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="userId != null and userId != ''">user_id = #{userId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="address != null and address != ''">address = #{address},</if>
+            <if test="privateKey != null">private_key = #{privateKey},</if>
+            <if test="lastSyncTime != null">last_sync_time = #{lastSyncTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteUserAddressesById" parameterType="Long">
+        delete from bc_user_addresses where id = #{id}
+    </delete>
+
+    <delete id="deleteUserAddressesByIds" parameterType="String">
+        delete from bc_user_addresses where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,22 +1,22 @@
 # 项目相关配置
 ruoyi:
   # 名称
-  name: RuoYi
+  name: ry
   # 版本
   version: 4.8.1
   # 版权年份
   copyrightYear: 2025
   # 实例演示开关
-  demoEnabled: true
+  demoEnabled: false
   # 文件路径 示例（ Windows配置D:/ruoyi/uploadPath，Linux配置 /home/ruoyi/uploadPath）
-  profile: D:/ruoyi/uploadPath
+  profile: uploads
   # 获取ip地址开关
   addressEnabled: false
 
 # 开发环境配置
 server:
   # 服务器的HTTP端口，默认为80
-  port: 80
+  port: 890
   servlet:
     # 应用的访问路径
     context-path: /
@@ -31,11 +31,6 @@ server:
       # Tomcat启动初始化的线程数，默认值10
       min-spare: 100
  
-# 日志配置
-logging:
-  level:
-    com.ruoyi: debug
-    org.springframework: warn
 
 # 用户配置
 user:
@@ -59,7 +54,7 @@ spring:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
   profiles:
-    active: druid
+    active: dev
   # 文件上传
   servlet:
     multipart:
@@ -111,7 +106,7 @@ shiro:
     # 设置Cookie的过期时间，天为单位
     maxAge: 30
     # 设置密钥，务必保持唯一性（生成方式，直接拷贝到main运行即可）Base64.encodeToString(CipherUtils.generateNewKey(128, "AES").getEncoded()) （默认启动生成随机秘钥，随机秘钥会导致之前客户端RememberMe Cookie无效，如设置固定秘钥RememberMe Cookie则有效）
-    cipherKey:
+    cipherKey: VHVcvyRYxYcs02V7z5xRsA==
   session:
     # Session超时时间，-1代表永不过期（默认30分钟）
     expireTime: 30

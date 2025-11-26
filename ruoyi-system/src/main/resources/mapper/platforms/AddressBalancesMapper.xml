@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.AddressBalancesMapper">
+    
+    <resultMap type="AddressBalances" id="AddressBalancesResult">
+        <result property="id"    column="id"    />
+        <result property="addressId"    column="address_id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="tokenSymbol"    column="token_symbol"    />
+        <result property="tokenContract"    column="token_contract"    />
+        <result property="balance"    column="balance"    />
+        <result property="balanceUsdtValue"    column="balance_usdt_value"    />
+        <result property="totalBalance"    column="total_balance"    />
+        <result property="lastSyncTime"    column="last_sync_time"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="status"    column="status"    />
+    </resultMap>
+
+    <sql id="selectAddressBalancesVo">
+        select id, address_id, platform_id, chain_type, token_symbol, token_contract, balance, balance_usdt_value, total_balance,last_sync_time, create_time, update_time,status from bc_address_balances
+    </sql>
+
+    <select id="selectAddressBalancesList" parameterType="AddressBalances" resultMap="AddressBalancesResult">
+        <include refid="selectAddressBalancesVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="addressId != null "> and address_id = #{addressId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <if test="tokenSymbol != null  and tokenSymbol != ''"> and token_symbol like concat('%', #{tokenSymbol}, '%')</if>
+            <if test="balance != null "> and balance = #{balance}</if>
+            <if test="balanceUsdtValue != null "> and balance_usdt_value = #{balanceUsdtValue}</if>
+            <if test="lastSyncTime != null "> and last_sync_time = #{lastSyncTime}</if>
+        </where>
+    </select>
+
+    <select id="selectBalancesListAfterId"  resultMap="AddressBalancesResult">
+        <include refid="selectAddressBalancesVo"/>
+        <where>
+            status=0
+            <if test="chainType != null"> AND chain_type = #{chainType} </if>
+            <if test="platformId != null and platformId>0"> AND platform_id = #{platformId} </if>
+
+            AND id &gt; #{lastId}
+        </where>
+        ORDER BY id ASC
+        LIMIT #{batchSize}
+    </select>
+    <select id="selectAddressBalancesById" parameterType="Long" resultMap="AddressBalancesResult">
+        <include refid="selectAddressBalancesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertAddressBalances" parameterType="AddressBalances" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_address_balances
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="addressId != null">address_id,</if>
+            <if test="platformId != null ">platform_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol,</if>
+            <if test="tokenContract != null">token_contract,</if>
+            <if test="balance != null">balance,</if>
+            <if test="balanceUsdtValue != null">balance_usdt_value,</if>
+            <if test="totalBalance != null">total_balance,</if>
+            <if test="lastSyncTime != null">last_sync_time,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="status != null">status,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="addressId != null">#{addressId},</if>
+            <if test="platformId != null ">#{platformId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">#{tokenSymbol},</if>
+            <if test="tokenContract != null">#{tokenContract},</if>
+            <if test="balance != null">#{balance},</if>
+            <if test="balanceUsdtValue != null">#{balanceUsdtValue},</if>
+            <if test="totalBalance != null">#{totalBalance},</if>
+            <if test="lastSyncTime != null">#{lastSyncTime},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="status != null">#{status},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAddressBalances" parameterType="AddressBalances">
+        update bc_address_balances
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="addressId != null">address_id = #{addressId},</if>
+            <if test="platformId != null ">platform_id=#{platformId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="balanceUsdtValue != null">balance_usdt_value = #{balanceUsdtValue},</if>
+            <if test="totalBalance != null">total_balance=#{totalBalance},</if>
+            <if test="lastSyncTime != null">last_sync_time = #{lastSyncTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateAddressBalancesByAddressId" parameterType="AddressBalances">
+        update bc_address_balances
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null ">platform_id=#{platformId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="balance != null">balance = #{balance},</if>
+            <if test="balanceUsdtValue != null">balance_usdt_value = #{balanceUsdtValue},</if>
+            <if test="totalBalance != null">total_balance=#{totalBalance},</if>
+            <if test="lastSyncTime != null">last_sync_time = #{lastSyncTime},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where address_id = #{addressId}
+    </update>
+
+    <delete id="deleteAddressBalancesById" parameterType="Long">
+        delete from bc_address_balances where id = #{id}
+    </delete>
+
+    <delete id="deleteAddressBalancesByIds" parameterType="String">
+        delete from bc_address_balances where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

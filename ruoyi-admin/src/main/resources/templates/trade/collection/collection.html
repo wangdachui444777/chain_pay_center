@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <th:block th:include="include :: header('归集记录列表')" />
+</head>
+<body class="gray-bg">
+<div class="container-div">
+    <div class="row">
+        <div class="col-sm-12 search-collapse">
+            <form id="formId">
+                <div class="select-list">
+                    <ul>
+                        <li>
+                            <label>平台ID：</label>
+                            <input type="text" name="platformId"/>
+                        </li>
+                        <li>
+                            <label>链类型：</label>
+                            <select name="chainType" th:with="type=${@dict.getType('bc_chain_type')}">
+                                <option value="">所有</option>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>源地址：</label>
+                            <input type="text" name="fromAddress"/>
+                        </li>
+                        <li>
+                            <label>目标地址：</label>
+                            <input type="text" name="toAddress"/>
+                        </li>
+                        <li>
+                            <label>整体状态：</label>
+                            <select name="status" th:with="type=${@dict.getType('bc_gather_status')}">
+                                <option value="">所有</option>
+                                <option th:each="dict : ${type}" th:text="${dict.dictLabel}" th:value="${dict.dictValue}"></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>开始时间：</label>
+                            <input type="text" class="time-input" placeholder="请选择开始时间" name="startTime"/>
+                        </li>
+                        <li>
+                            <label>完成时间：</label>
+                            <input type="text" class="time-input" placeholder="请选择完成时间" name="completeTime"/>
+                        </li>
+                        <li>
+                            <a class="btn btn-primary btn-rounded btn-sm" onclick="$.table.search()"><i class="fa fa-search"></i>&nbsp;搜索</a>
+                            <a class="btn btn-warning btn-rounded btn-sm" onclick="$.form.reset()"><i class="fa fa-refresh"></i>&nbsp;重置</a>
+                        </li>
+                    </ul>
+                </div>
+            </form>
+        </div>
+
+        <div class="btn-group-sm" id="toolbar" role="group">
+
+            <a class="btn btn-warning" onclick="$.table.exportExcel()" shiro:hasPermission="trade:collection:export">
+                <i class="fa fa-download"></i> 导出
+            </a>
+        </div>
+        <div class="col-sm-12 select-table table-striped">
+            <table id="bootstrap-table"></table>
+        </div>
+    </div>
+</div>
+<th:block th:include="include :: footer" />
+<script th:inline="javascript">
+   /** var editFlag = [[${@permission.hasPermi('trade:collection:edit')}]];
+   var removeFlag = [[${@permission.hasPermi('trade:collection:remove')}]];
+
+    var gasTxStatusDatas = [[${@dict.getType('bc_gather_tx_status')}]];
+    var txStatusDatas = [[${@dict.getType('bc_gather_tx_status')}]];**/
+
+    var chainTypeDatas = [[${@dict.getType('bc_chain_type')}]];
+    var statusDatas = [[${@dict.getType('bc_gather_status')}]];
+    var prefix = ctx + "trade/collection";
+
+    $(function() {
+        var options = {
+            url: prefix + "/list",
+            exportUrl: prefix + "/export",
+            detailUrl: prefix + "/edit/{id}",
+            modalName: "归集记录",
+            columns: [{
+                checkbox: true
+            },
+                {
+                    field: 'id',
+                    title: '主键ID',
+                    visible: false
+                },
+                {
+                    field: 'platformId',
+                    title: '平台ID'
+                },
+                {
+                    field: 'chainType',
+                    title: '链类型',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(chainTypeDatas, value);
+                    }
+                },
+                {
+                    field: 'fromAddress',
+                    title: '源地址',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 10,'copy');
+                    }
+                },
+                {
+                    field: 'toAddress',
+                    title: '目标地址',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 10,'copy');
+                    }
+                },
+                {
+                    field: 'gasTxStatus',
+                    title: '当前进度',
+                    formatter: function(value, row, index) {
+                        const statusMap = {
+                            "0_0": "等待发送手续费",
+                            "1_0": "手续费等待确认",
+                            "2_0": "等待转账",
+                            "3_0": "手续费划转失败",
+                            "2_1": "转账等待确认",
+                            "2_2": "归集完成",
+                            "2_3": "转账失败",
+                            "3_3": "手续费划转失败"
+                        };
+                        const key = (value !== undefined ? value : "_") + "_" + (row.txStatus !== undefined ? row.txStatus : "_");
+
+                        return statusMap[key] || "-";
+                    }
+                },
+                {
+                    field: 'amount',
+                    title: '归集金额',
+                    formatter: function(value, row, index) {
+                        return value+" "+row.tokenSymbol;
+                    }
+                },
+                {
+                    field: 'errorMsg',
+                    title: '错误信息',
+                    formatter: function(value, row, index) {
+                        return $.table.tooltip(value, 10,'copy');
+                    }
+                },
+                {
+                    field: 'status',
+                    title: '整体状态',
+                    formatter: function(value, row, index) {
+                        return $.table.selectDictLabel(statusDatas, value);
+                    }
+                },
+                {
+                    field: 'startTime',
+                    title: '处理时间段',
+                    formatter: function(value, row, index) {
+                        return value+" ～ "+row.completeTime;
+                    }
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    formatter: function(value, row, index) {
+                        var actions = [];
+                        actions.push('<a class="btn btn-success btn-xs " href="javascript:void(0)" onclick="$.operate.detail(\'' + row.id + '\')"><i class="fa fa-search"></i>查看</a> ');
+                        return actions.join('');
+                    }
+                }]
+        };
+        $.table.init(options);
+    });
+</script>
+</body>
+</html>

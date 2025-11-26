@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.TokenPricesMapper">
+    
+    <resultMap type="TokenPrices" id="TokenPricesResult">
+        <result property="id"    column="id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="tokenSymbol"    column="token_symbol"    />
+        <result property="tokenContract"    column="token_contract"    />
+        <result property="decimals"    column="decimals"    />
+        <result property="priceInUsdt"    column="price_in_usdt"    />
+        <result property="isMainCoin"    column="is_main_coin"    />
+        <result property="enabled"    column="enabled"    />
+        <result property="tokenType"    column="token_type"    />
+        <result property="lastUpdate"    column="last_update"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTokenPricesVo">
+        select id, chain_type, token_symbol, token_contract, decimals, price_in_usdt, is_main_coin, enabled, token_type, last_update, create_time, update_time, remark from bc_token_prices
+    </sql>
+
+    <select id="selectTokenPricesList" parameterType="TokenPrices" resultMap="TokenPricesResult">
+        <include refid="selectTokenPricesVo"/>
+        <where>  
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="tokenSymbol != null  and tokenSymbol != ''"> and token_symbol = #{tokenSymbol}</if>
+            <if test="priceInUsdt != null "> and price_in_usdt = #{priceInUsdt}</if>
+            <if test="isMainCoin != null "> and is_main_coin = #{isMainCoin}</if>
+            <if test="enabled != null "> and enabled = #{enabled}</if>
+            <if test="tokenType != null  and tokenType != ''"> and token_type = #{tokenType}</if>
+        </where>
+    </select>
+    
+    <select id="selectTokenPricesById" parameterType="Long" resultMap="TokenPricesResult">
+        <include refid="selectTokenPricesVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTokenPrices" parameterType="TokenPrices" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_token_prices
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol,</if>
+            <if test="tokenContract != null">token_contract,</if>
+            <if test="decimals != null">decimals,</if>
+            <if test="priceInUsdt != null">price_in_usdt,</if>
+            <if test="isMainCoin != null">is_main_coin,</if>
+            <if test="enabled != null">enabled,</if>
+            <if test="tokenType != null and tokenType != ''">token_type,</if>
+            <if test="lastUpdate != null">last_update,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">#{tokenSymbol},</if>
+            <if test="tokenContract != null">#{tokenContract},</if>
+            <if test="decimals != null">#{decimals},</if>
+            <if test="priceInUsdt != null">#{priceInUsdt},</if>
+            <if test="isMainCoin != null">#{isMainCoin},</if>
+            <if test="enabled != null">#{enabled},</if>
+            <if test="tokenType != null and tokenType != ''">#{tokenType},</if>
+            <if test="lastUpdate != null">#{lastUpdate},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTokenPrices" parameterType="TokenPrices">
+        update bc_token_prices
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="decimals != null">decimals = #{decimals},</if>
+            <if test="priceInUsdt != null">price_in_usdt = #{priceInUsdt},</if>
+            <if test="isMainCoin != null">is_main_coin = #{isMainCoin},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="tokenType != null and tokenType != ''">token_type = #{tokenType},</if>
+            <if test="lastUpdate != null">last_update = #{lastUpdate},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+    <update id="updatePriceForSymbol" parameterType="TokenPrices">
+        update bc_token_prices
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="tokenSymbol != null and tokenSymbol != ''">token_symbol = #{tokenSymbol},</if>
+            <if test="tokenContract != null">token_contract = #{tokenContract},</if>
+            <if test="decimals != null">decimals = #{decimals},</if>
+            <if test="priceInUsdt != null">price_in_usdt = #{priceInUsdt},</if>
+            <if test="isMainCoin != null">is_main_coin = #{isMainCoin},</if>
+            <if test="enabled != null">enabled = #{enabled},</if>
+            <if test="tokenType != null and tokenType != ''">token_type = #{tokenType},</if>
+            <if test="lastUpdate != null">last_update = #{lastUpdate},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where token_symbol = #{tokenSymbol}
+    </update>
+
+    <delete id="deleteTokenPricesById" parameterType="Long">
+        delete from bc_token_prices where id = #{id}
+    </delete>
+
+    <delete id="deleteTokenPricesByIds" parameterType="String">
+        delete from bc_token_prices where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
