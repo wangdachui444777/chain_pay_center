@@ -51,6 +51,7 @@ public interface IBcFeeSourceAddressesService
      * @return
      */
      BcFeeSourceAddresses getPayAddressCache(Long platformId,String chainType,String address);
+
     /**
      * 批量删除付款地址
      * 

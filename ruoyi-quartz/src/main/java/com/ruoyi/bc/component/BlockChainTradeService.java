@@ -50,6 +50,9 @@ public class BlockChainTradeService {
     private IBcFeeSourceAddressesService feeSourceAddressesService;
 
     @Autowired
+    private IBcEnergyPaymentConfigService energyPaymentConfigService;
+
+    @Autowired
     private IBcConsolidationDetailService detailService;
 
     @Autowired
@@ -128,7 +131,11 @@ public class BlockChainTradeService {
             Long blockNumber=0L;
             boolean status=false;
             if (detail.getGasBlockNumber()==null || detail.getGasBlockNumber()==0L){
-                Map<String,Object> obj =apiService.checkTxStatus(txId);
+                BcEnergyPaymentConfig energyConfig = null;
+                if (txId.contains("-")) {
+                    energyConfig = energyPaymentConfigService.getEnergyPaymentConfigCache(detail.getPlatformId(), chainType);
+                }
+                Map<String,Object> obj =apiService.checkTxStatus(txId, energyConfig);
                 status=(boolean)obj.get("success");
                 if (obj.get("blockNumber")!=null){
                     blockNum=Long.parseLong(obj.get("blockNumber").toString());
@@ -474,7 +481,8 @@ public class BlockChainTradeService {
             public void run() {
                 IBlockChainApiService apiService = bcService(_chainType);
                 // 租能量标记
-                boolean hasEnergy = true;
+                boolean hasEnergy = false;
+                BcEnergyPaymentConfig energyConfig = null;
                 boolean firstGas=true;
 
                 String payAddress="",payPrivateKey="";
@@ -488,6 +496,8 @@ public class BlockChainTradeService {
                     Long platformId = detailList.get(0).getPlatformId();
                     Long addressId= detailList.get(0).getAddressId();
                     if(firstGas){
+                        energyConfig = energyPaymentConfigService.getEnergyPaymentConfigCache(platformId, _chainType);
+                        hasEnergy = energyConfig != null && "0".equals(energyConfig.getStatus());
                         // 手续费支付地址
                         BcFeeSourceAddresses sourceAddr = feeSourceAddressesService.getPayAddressCache(platformId, _chainType, null);
                         if (sourceAddr == null) {
@@ -514,7 +524,7 @@ public class BlockChainTradeService {
                     // 如果需要转手续费
                     String txId = null;
                     if (totalFee.compareTo(BigDecimal.ZERO) > 0) {
-                        txId = apiService.sendTxFee(payAddress, payPrivateKey, toAddress, totalFee, gasPrice, gasLimit, hasEnergy);
+                        txId = apiService.sendTxFee(payAddress, payPrivateKey, toAddress, totalFee, gasPrice, gasLimit, hasEnergy, energyConfig);
                     }
                     // 如果发送失败，更新状态为失败
                     String finalStatus = StringUtils.isEmpty(txId) ? "3" : "1";

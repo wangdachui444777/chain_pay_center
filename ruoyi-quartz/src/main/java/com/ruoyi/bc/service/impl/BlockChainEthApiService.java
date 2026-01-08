@@ -7,6 +7,7 @@ import com.ruoyi.bc.config.ChainTypeConfirmations;
 import com.ruoyi.bc.config.Web3jManager;
 import com.ruoyi.bc.service.IBlockChainApiService;
 import com.ruoyi.blockchain.domain.ApiBcTransaction;
+import com.ruoyi.blockchain.domain.BcEnergyPaymentConfig;
 import com.ruoyi.blockchain.domain.EthTransaction;
 import com.ruoyi.blockchain.domain.TokenPrices;
 import com.ruoyi.blockchain.service.ITokenPricesService;
@@ -183,7 +184,7 @@ public class BlockChainEthApiService implements IBlockChainApiService {
      * @param gas
      * @return
      */
-    public String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy){
+    public String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy,BcEnergyPaymentConfig energyConfig){
         String signedData= sendMain(fromAddr,fromPrv,toAddr,amount,gasPrice,gas);
         if(signedData!=null){
             return broadcastTransaction(signedData);
@@ -300,6 +301,10 @@ public class BlockChainEthApiService implements IBlockChainApiService {
 
         return result;
 
+    }
+
+    public Map<String, Object> checkTxStatus(String txHash, BcEnergyPaymentConfig energyConfig){
+        return checkTxStatus(txHash);
     }
 
     //===============私有方法=========

@@ -37,29 +37,20 @@ public class CatFeeApiClient {
     private final String apiKey;
     private final String apiSecret;
     private final ObjectMapper objectMapper;
-    //测试环境
-    public static CatFeeApiClient me=new CatFeeApiClient(
-            "f60c3254-7594-4605-94eb-4a02909f50b1",
-            "832ebe94ea7483148e11a6e1e472413b",
-            "https://nile.catfee.io"
-    );
-    //正式环境
-    public static CatFeeApiClient meTest=new CatFeeApiClient(
-            "51f2eb32-76e8-481a-9e25-22cd1fa3a54e",
-            "a3815635be3c7c5959f4c0324de37722",
-            "https://api.catfee.io"
-    );
-
     /**
      * 构造函数
      * @param apiKey API密钥
      * @param apiSecret API密钥对应的Secret
      */
     private CatFeeApiClient(String apiKey, String apiSecret,String baseUrl) {
-        this.apiKey = apiKey;
-        this.apiSecret = apiSecret;
-        this.BASE_URL = baseUrl;
+        this.apiKey = apiKey.trim();
+        this.apiSecret = apiSecret.trim();
+        this.BASE_URL = baseUrl.trim();
         this.objectMapper = new ObjectMapper();
+    }
+
+    public static CatFeeApiClient create(String apiKey, String apiSecret, String baseUrl) {
+        return new CatFeeApiClient(apiKey, apiSecret, baseUrl);
     }
 
     /**
@@ -555,20 +546,4 @@ public class CatFeeApiClient {
         }
     }
 
-    public static void main(String[] args) {
-        String apiKey="f60c3254-7594-4605-94eb-4a02909f50b1";
-        String secret="832ebe94ea7483148e11a6e1e472413b";
-        String addr="TYc9sdWrstzUfDvF3WUKd6BJ4ndY5G7rFZ";
-
-        CatFeeApiClient catFeeApiClient=CatFeeApiClient.meTest;
-        try {
-          // CatFeeApiClient.ApiResponse res=catFeeApiClient.createEnergyOrder(65000,addr,"1h");
-            CatFeeApiClient.ApiResponse<OrderDetail> res=  catFeeApiClient.getOrderDetail("b43de41a-1c87-4578-a66a-f5ed43648156");
-            //System.out.println(res.getData());
-            //System.out.println(res);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }

@@ -2,6 +2,7 @@ package com.ruoyi.bc.service;
 
 import com.ruoyi.bc.component.ComponentBlockChainService;
 import com.ruoyi.blockchain.domain.ApiBcTransaction;
+import com.ruoyi.blockchain.domain.BcEnergyPaymentConfig;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,6 +40,17 @@ public interface IBlockChainApiService {
      *         result.put("mainCoin", 0);
      */
       Map<String, Object> checkTxStatus(String txHash);
+
+    /**
+     * 检测交易后的状态（支持第三方能量订单）
+     * @param txHash
+     * @param energyConfig
+     * @return result.put(" success ", false);
+     *         result.put("blockNumber", null);
+     *         result.put("gasUsed", 0);
+     *         result.put("mainCoin", 0);
+     */
+      Map<String, Object> checkTxStatus(String txHash, com.ruoyi.blockchain.domain.BcEnergyPaymentConfig energyConfig);
     /**
      * 获取gas价格
      * @return
@@ -55,7 +67,7 @@ public interface IBlockChainApiService {
      * @param gas
      * @return
      */
-    String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy);
+    String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy,BcEnergyPaymentConfig energyConfig);
     /**
      * 主币转账
      * @param fromAddr

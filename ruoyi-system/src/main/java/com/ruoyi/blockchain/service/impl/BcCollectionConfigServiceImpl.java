@@ -125,7 +125,7 @@ public class BcCollectionConfigServiceImpl implements IBcCollectionConfigService
                 setCache(bcCollectionConfig.getPlatformId(),bcCollectionConfig);
             }
             return flag;
-        }catch (ServiceException e){
+        }catch (Exception e){
             throw  new ServiceException("不可重复添加");
         }
 
@@ -148,7 +148,7 @@ public class BcCollectionConfigServiceImpl implements IBcCollectionConfigService
                 setCache(bcCollectionConfig.getPlatformId(), bcCollectionConfig);
             }
             return flag;
-        }catch (ServiceException e){
+        }catch (Exception e){
             throw  new ServiceException("同一平台只能添加一个链");
         }
     }

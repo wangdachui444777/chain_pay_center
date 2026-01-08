@@ -10,6 +10,7 @@ import com.ruoyi.bc.config.ChainTypeConfirmations;
 import com.ruoyi.bc.service.IBlockChainApiService;
 import com.ruoyi.blockchain.domain.ApiBcTransaction;
 import com.ruoyi.blockchain.domain.BcApiKeys;
+import com.ruoyi.blockchain.domain.BcEnergyPaymentConfig;
 import com.ruoyi.blockchain.domain.TokenPrices;
 import com.ruoyi.blockchain.domain.TronTransaction;
 import com.ruoyi.blockchain.service.IBcApiKeysService;
@@ -264,10 +265,10 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @param hasEnergy
      * @return 交易hash
      */
-    public String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy){
+    public String sendTxFee(String fromAddr,String fromPrv,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas,boolean hasEnergy,BcEnergyPaymentConfig energyConfig){
         //发送能量
         if(hasEnergy){
-            return sendEnergy(toAddr,amount.longValue());
+            return sendEnergy(toAddr,amount.longValue(), energyConfig);
         }
         return transfer(fromAddr,fromPrv,toAddr,amount,null,gas);
     }
@@ -278,13 +279,17 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @return
      */
     public Map<String, Object> checkTxStatus(String txHash){
+        return checkTxStatus(txHash, null);
+    }
+
+    public Map<String, Object> checkTxStatus(String txHash, BcEnergyPaymentConfig energyConfig){
         Map<String, Object> result = new HashMap<>();
         result.put("success", false);
         result.put("blockNumber", null);
         result.put("gasUsed", 0);
         result.put("mainCoin", 0);
         if (txHash.contains("-")){
-            result= checkOderStatus(txHash);
+            result= checkOderStatus(txHash, energyConfig);
             return result;
         }
 
@@ -297,12 +302,17 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         }
         log.info("查询交易状态返回：{}",jsonObject);
         JSONObject receipt=jsonObject.getJSONObject("receipt");
-        // 解析成功状态
-        boolean success = "SUCCESS".equalsIgnoreCase(receipt.getString("result"));
         // 取得区块号
         BigInteger blockNumber = jsonObject.getBigInteger("blockNumber");
+        // 优先使用 receipt.result 判断，缺失时再用 blockNumber 兜底
+        String receiptResult = receipt.getString("result");
+        boolean success = StringUtils.isNotEmpty(receiptResult)
+            ? "SUCCESS".equalsIgnoreCase(receiptResult)
+            : blockNumber != null;
         // 取出此次交易消耗
-        BigInteger energyUsed = receipt.getBigInteger("energy_usage_total");     // 交易消耗能量
+        BigInteger energyUsed = receipt.containsKey("energy_usage_total")
+            ? receipt.getBigInteger("energy_usage_total")
+            : (receipt.containsKey("net_usage") ? receipt.getBigInteger("net_usage") : BigInteger.ONE);     // 交易消耗能量
         //BigInteger netUsed = receipt.getBigInteger("net_usage");                // 消耗带宽 (字节数)
        // BigInteger fee = receipt.getBigInteger("fee");                          // 直接扣的 SUN 手续费 (包含能量和带宽不足时的扣费)
 
@@ -329,14 +339,13 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @param address
      * @return 返回第三方的id
      */
-    private String sendEnergy(String address,Long gas){
+    private String sendEnergy(String address,Long gas,BcEnergyPaymentConfig energyConfig){
         try {
-            CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderResult> res=null;
-            if (isTest){
-                res= CatFeeApiClient.meTest.createEnergyOrder(gas,address,"1h");
-            }else{
-                res= CatFeeApiClient.me.createEnergyOrder(gas,address,"1h");
+            CatFeeApiClient client = getEnergyClient(energyConfig);
+            if (client == null) {
+                return null;
             }
+            CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderResult> res = client.createEnergyOrder(gas,address,"1h");
 
             if (res.isSuccess()){
                 return res.getData().getId();
@@ -348,12 +357,22 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         }
     }
 
+    private CatFeeApiClient getEnergyClient(BcEnergyPaymentConfig energyConfig) {
+        if (energyConfig != null
+                && StringUtils.isNotEmpty(energyConfig.getApiKey())
+                && StringUtils.isNotEmpty(energyConfig.getApiSecret())
+                && StringUtils.isNotEmpty(energyConfig.getApiUrl())) {
+            return CatFeeApiClient.create(energyConfig.getApiKey(), energyConfig.getApiSecret(), energyConfig.getApiUrl());
+        }
+        return null;
+    }
+
     /**
      * 获取第三方的状态
      * @param txId
      * @return
      */
-    private Map<String, Object> checkOderStatus(String txId){
+    private Map<String, Object> checkOderStatus(String txId, BcEnergyPaymentConfig energyConfig){
         boolean hasConfirm=false;
         Map<String, Object> result = new HashMap<>();
         result.put("success", false);
@@ -362,12 +381,11 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         result.put("mainCoin", 0);
 
         try {
-            CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderDetail> res=null;
-            if (isTest){
-                res= CatFeeApiClient.meTest.getOrderDetail(txId);
-            }else{
-                res= CatFeeApiClient.me.getOrderDetail(txId);
+            CatFeeApiClient client = getEnergyClient(energyConfig);
+            if (client == null) {
+                return result;
             }
+            CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderDetail> res = client.getOrderDetail(txId);
 
             if (!res.isSuccess()){
                 result.put("success", false);
@@ -624,7 +642,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         } catch (Exception ex) {
             ex.fillInStackTrace();
         }
-        return BigDecimal.valueOf(4000L);
+        return BigDecimal.valueOf(65000L);
     }
 
 
@@ -879,7 +897,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         String results = executeRequest("/wallet/broadcasthex", data, true);
         log.info("trx广播：{}",results);
         JSONObject node = JSON.parseObject(results);
-        if (node.getBoolean("result")) {
+        if (node.containsKey("result") && node.getBoolean("result")) {
             return node.getString("txid");
         }else{
             return null;

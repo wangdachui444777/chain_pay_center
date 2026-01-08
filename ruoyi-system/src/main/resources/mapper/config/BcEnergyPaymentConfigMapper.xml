@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.blockchain.mapper.BcEnergyPaymentConfigMapper">
+    
+    <resultMap type="BcEnergyPaymentConfig" id="BcEnergyPaymentConfigResult">
+        <result property="id"    column="id"    />
+        <result property="platformId"    column="platform_id"    />
+        <result property="chainType"    column="chain_type"    />
+        <result property="providerName"    column="provider_name"    />
+        <result property="apiUrl"    column="api_url"    />
+        <result property="appId"    column="app_id"    />
+        <result property="apiKey"    column="api_key"    />
+        <result property="apiSecret"    column="api_secret"    />
+        <result property="status"    column="status"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectBcEnergyPaymentConfigVo">
+        select id, platform_id, chain_type, provider_name, api_url, app_id, api_key, api_secret, status, create_by, update_by, create_time, update_time, remark from bc_energy_payment_config
+    </sql>
+
+    <select id="selectBcEnergyPaymentConfigList" parameterType="BcEnergyPaymentConfig" resultMap="BcEnergyPaymentConfigResult">
+        <include refid="selectBcEnergyPaymentConfigVo"/>
+        <where>  
+            <if test="platformId != null "> and platform_id = #{platformId}</if>
+            <if test="chainType != null  and chainType != ''"> and chain_type = #{chainType}</if>
+            <if test="providerName != null  and providerName != ''"> and provider_name like concat('%', #{providerName}, '%')</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+        </where>
+    </select>
+    
+    <select id="selectBcEnergyPaymentConfigById" parameterType="Long" resultMap="BcEnergyPaymentConfigResult">
+        <include refid="selectBcEnergyPaymentConfigVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertBcEnergyPaymentConfig" parameterType="BcEnergyPaymentConfig" useGeneratedKeys="true" keyProperty="id">
+        insert into bc_energy_payment_config
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">platform_id,</if>
+            <if test="chainType != null and chainType != ''">chain_type,</if>
+            <if test="providerName != null and providerName != ''">provider_name,</if>
+            <if test="apiUrl != null">api_url,</if>
+            <if test="appId != null">app_id,</if>
+            <if test="apiKey != null">api_key,</if>
+            <if test="apiSecret != null">api_secret,</if>
+            <if test="status != null">status,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="platformId != null">#{platformId},</if>
+            <if test="chainType != null and chainType != ''">#{chainType},</if>
+            <if test="providerName != null and providerName != ''">#{providerName},</if>
+            <if test="apiUrl != null">#{apiUrl},</if>
+            <if test="appId != null">#{appId},</if>
+            <if test="apiKey != null">#{apiKey},</if>
+            <if test="apiSecret != null">#{apiSecret},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateBcEnergyPaymentConfig" parameterType="BcEnergyPaymentConfig">
+        update bc_energy_payment_config
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="platformId != null">platform_id = #{platformId},</if>
+            <if test="chainType != null and chainType != ''">chain_type = #{chainType},</if>
+            <if test="providerName != null and providerName != ''">provider_name = #{providerName},</if>
+            <if test="apiUrl != null">api_url = #{apiUrl},</if>
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="apiKey != null">api_key = #{apiKey},</if>
+            <if test="apiSecret != null">api_secret = #{apiSecret},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteBcEnergyPaymentConfigById" parameterType="Long">
+        delete from bc_energy_payment_config where id = #{id}
+    </delete>
+
+    <delete id="deleteBcEnergyPaymentConfigByIds" parameterType="String">
+        delete from bc_energy_payment_config where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

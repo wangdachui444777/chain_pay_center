@@ -1,20 +1,14 @@
 package com.ruoyi.blockchain.service.impl;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.github.pagehelper.PageHelper;
-import com.ruoyi.blockchain.domain.BcFeeSourceAddresses;
 import com.ruoyi.common.core.redis.RedisCache;
 import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.common.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import com.ruoyi.blockchain.mapper.BcApiKeysMapper;
 import com.ruoyi.blockchain.domain.BcApiKeys;
@@ -36,6 +30,7 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
     private RedisCache redisCache;
 
     private static final String CACHE_KEY_PREFIX = "bc:apikeys:";
+    private static final String CACHE_LIST_PREFIX = "bc:apikeys:list:";
     //private static final String USAGE_KEY_PREFIX = "bc:apikey:usage:";
     private static final String LAST_RESET_KEY = "bc:apikeys:last_reset";
     /**
@@ -77,6 +72,7 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
         int flag= bcApiKeysMapper.insertBcApiKeys(bcApiKeys);
         if(flag>0){
             setCache(bcApiKeys);
+            invalidateListCache(bcApiKeys.getChainType());
         }
         return flag;
     }
@@ -95,6 +91,7 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
         int flag= bcApiKeysMapper.updateBcApiKeys(bcApiKeys);
         if(flag>0){
             setCache(bcApiKeys);
+            invalidateListCache(bcApiKeys.getChainType());
         }
         return flag;
     }
@@ -140,10 +137,14 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
         }
        // String cacheKey=getCacheKey(key.getChainType(),keyId);
         BcApiKeys apiKeyCache=getCacheOne(apiKeyDb.getChainType(),keyId);
+        if (apiKeyCache == null) {
+            apiKeyCache = apiKeyDb;
+            setCache(apiKeyCache);
+        }
         //使用次数+1
-        Long cacheUsed=apiKeyCache.getUsedCount()+1;
+        Long cacheUsed=(apiKeyCache.getUsedCount() == null ? 0L : apiKeyCache.getUsedCount()) + 1;
 
-        Long dbUsed=apiKeyDb.getUsedCount();
+        Long dbUsed=apiKeyDb.getUsedCount() == null ? 0L : apiKeyDb.getUsedCount();
         //保存到缓存
         apiKeyCache.setUsedCount(cacheUsed);
         setCache(apiKeyCache);
@@ -183,7 +184,8 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
     private void deleteCache(){
         // 清理缓存
         String key=CACHE_KEY_PREFIX + "*";
-        redisCache.deleteObject(redisCache.getCacheSet(key));
+        redisCache.deleteObject(redisCache.keys(key));
+        redisCache.deleteObject(redisCache.keys(CACHE_LIST_PREFIX + "*"));
     }
 
     /**
@@ -201,6 +203,10 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
      * @param apiKeysList
      */
     private void  setCacheList(List<BcApiKeys> apiKeysList){
+        if (apiKeysList == null || apiKeysList.isEmpty()) {
+            return;
+        }
+        redisCache.setCacheList(getListCacheKey(apiKeysList.get(0).getChainType()), apiKeysList);
         // 批量设置缓存
         for (BcApiKeys apiKey:apiKeysList) {
            setCache(apiKey);
@@ -225,9 +231,13 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
      */
     private List<BcApiKeys> getCacheList(String chainType){
         List<BcApiKeys> list = new ArrayList<>();
+        List<BcApiKeys> cacheList = redisCache.getCacheList(getListCacheKey(chainType));
+        if (cacheList != null && !cacheList.isEmpty()) {
+            return cacheList;
+        }
         //没有传入id，返回整个list
         String key =getCacheKey(chainType,0L);
-        Set<String> keys= (Set<String>) redisCache.keys(key);
+        Collection<String> keys= redisCache.keys(key);
         if (keys == null || keys.isEmpty()) {
             return list;
         }
@@ -239,6 +249,14 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
         }
 
         return list;
+    }
+
+    private void invalidateListCache(String chainType) {
+        redisCache.deleteObject(getListCacheKey(chainType));
+    }
+
+    private String getListCacheKey(String chainType) {
+        return (CACHE_LIST_PREFIX + chainType).toLowerCase();
     }
 
     /**

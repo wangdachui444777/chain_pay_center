@@ -246,6 +246,29 @@ INSERT INTO `bc_fee_source_addresses` VALUES (1, 6001, 'TRX', 'TP6CqFPLbTdAuDxdh
 COMMIT;
 
 -- ----------------------------
+-- Table structure for bc_energy_payment_config
+-- ----------------------------
+DROP TABLE IF EXISTS `bc_energy_payment_config`;
+CREATE TABLE `bc_energy_payment_config` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `platform_id` bigint(20) NOT NULL COMMENT '关联平台ID',
+  `chain_type` varchar(20) NOT NULL COMMENT '区块链类型（TRX等）',
+  `provider_name` varchar(100) NOT NULL COMMENT '第三方服务商名称',
+  `api_url` varchar(255) DEFAULT NULL COMMENT '接口地址',
+  `app_id` varchar(100) DEFAULT NULL COMMENT '应用ID',
+  `api_key` varchar(255) DEFAULT NULL COMMENT '接口Key',
+  `api_secret` varchar(255) DEFAULT NULL COMMENT '接口密钥',
+  `status` char(1) DEFAULT '0' COMMENT '状态(0=正常 1=禁用)',
+  `create_by` varchar(64) DEFAULT '' COMMENT '创建者',
+  `update_by` varchar(64) DEFAULT '' COMMENT '更新者',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '更新时间',
+  `remark` varchar(500) DEFAULT NULL COMMENT '备注',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_platform_chain` (`platform_id`,`chain_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='第三方能量支付配置表';
+
+-- ----------------------------
 -- Table structure for bc_platforms
 -- ----------------------------
 DROP TABLE IF EXISTS `bc_platforms`;

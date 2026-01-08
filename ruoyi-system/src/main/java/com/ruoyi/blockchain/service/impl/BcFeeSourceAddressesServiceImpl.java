@@ -122,34 +122,46 @@ public class BcFeeSourceAddressesServiceImpl implements IBcFeeSourceAddressesSer
 
     /**
      * 获取缓存
-     * @param platformId
-     * @param chainType
-     * @param address 可以为null，为null时随机取
-     * @return
+     *
+     * @param platformId 平台ID
+     * @param chainType  链类型
+     * @param address    具体地址，可为 null；为 null 时默认取一个地址
      */
-    public BcFeeSourceAddresses getPayAddressCache(Long platformId,String chainType,String address){
-        BcFeeSourceAddresses addressInfo= getCache(platformId,chainType,address);
-        if (addressInfo==null){
-            BcFeeSourceAddresses query=new BcFeeSourceAddresses();
-            query.setPlatformId(platformId);
-            query.setChainType(chainType);
-            query.setStatus("0");
-           List<BcFeeSourceAddresses> list= selectBcFeeSourceAddressesList(query);
-            for (BcFeeSourceAddresses item:list) {
-                setCache(item);
-                //有时候会不传
-                if (StringUtils.isNotBlank(address) && address.equalsIgnoreCase(item.getFeeAddress())){
-                    addressInfo=item;
-                }
-                if (StringUtils.isBlank(address)){
-                    addressInfo=item;
-                }
+    public BcFeeSourceAddresses getPayAddressCache(Long platformId, String chainType, String address) {
+        // 1. 优先从缓存获取（address 为空时，内部 getCache 自己决定如何处理）
+        BcFeeSourceAddresses addressInfo = getCache(platformId, chainType, address);
+        if (addressInfo != null) {
+            return addressInfo;
+        }
 
+        // 2. 缓存没有，查询数据库
+        BcFeeSourceAddresses query = new BcFeeSourceAddresses();
+        query.setPlatformId(platformId);
+        query.setChainType(chainType);
+        query.setStatus("0");   // 只取可用的
 
+        List<BcFeeSourceAddresses> list = selectBcFeeSourceAddressesList(query);
+        if (list == null || list.isEmpty()) {
+            return null; // 没有可用地址
+        }
+
+        // 3. 刷新缓存：对该平台+链的所有地址都 setCache 一遍
+        boolean addressIsBlank = StringUtils.isBlank(address);
+        for (BcFeeSourceAddresses item : list) {
+            // 覆盖写入缓存，相当于“全部重置”
+            setCache(item);
+            if (!addressIsBlank && address.equalsIgnoreCase(item.getFeeAddress())) {
+                return item;
             }
         }
-        return addressInfo;
+
+        // 4. 未传 address 时随机取一个；传了 address 未命中则返回 null
+        if (addressIsBlank) {
+            return list.get(ThreadLocalRandom.current().nextInt(list.size()));
+        }
+        return null;
     }
+
 
     private BcFeeSourceAddresses getCache(Long platformId,String chainType,String address){
         String key=getKey(platformId,chainType,address);

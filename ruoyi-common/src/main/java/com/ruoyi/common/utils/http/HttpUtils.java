@@ -18,6 +18,8 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import org.slf4j.Logger;
@@ -41,6 +43,8 @@ public class HttpUtils {
     private static final int DEFAULT_READ_TIMEOUT = 50000;
     // 强制使用 JDK 自带 SunJSSE，避免 BC Provider 造成 TLS 握手类型不匹配
     private static final javax.net.ssl.SSLSocketFactory DEFAULT_SSL_SOCKET_FACTORY = buildDefaultSslSocketFactory();
+    private static final javax.net.ssl.SSLSocketFactory STRICT_SSL_SOCKET_FACTORY =
+        new RestrictedSslSocketFactory(DEFAULT_SSL_SOCKET_FACTORY);
 
     /**
      * 发送 GET 请求
@@ -94,7 +98,7 @@ public class HttpUtils {
             URL realUrl = new URL(urlNameString);
             URLConnection connection = realUrl.openConnection();
             if (connection instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) connection).setSSLSocketFactory(DEFAULT_SSL_SOCKET_FACTORY);
+                ((HttpsURLConnection) connection).setSSLSocketFactory(STRICT_SSL_SOCKET_FACTORY);
             }
 
             // 设置默认请求头
@@ -199,7 +203,7 @@ public class HttpUtils {
             URL realUrl = new URL(url);
             URLConnection conn = realUrl.openConnection();
             if (conn instanceof HttpsURLConnection) {
-                ((HttpsURLConnection) conn).setSSLSocketFactory(DEFAULT_SSL_SOCKET_FACTORY);
+                ((HttpsURLConnection) conn).setSSLSocketFactory(STRICT_SSL_SOCKET_FACTORY);
             }
 
             // 设置默认请求头
@@ -259,12 +263,82 @@ public class HttpUtils {
      */
     private static javax.net.ssl.SSLSocketFactory buildDefaultSslSocketFactory() {
         try {
-            SSLContext sc = SSLContext.getInstance("TLS", "SunJSSE");
+            // 避免 XDH (X25519/X448) 在部分 BC Provider 环境下触发类型冲突
+            if (System.getProperty("jdk.tls.namedGroups") == null) {
+                System.setProperty("jdk.tls.namedGroups", "secp256r1,secp384r1,secp521r1");
+            }
+            SSLContext sc;
+            try {
+                sc = SSLContext.getInstance("TLSv1.2", "SunJSSE");
+            } catch (Exception tls12Ex) {
+                sc = SSLContext.getInstance("TLS", "SunJSSE");
+            }
             sc.init(null, null, null);
             return sc.getSocketFactory();
         } catch (Exception e) {
             log.warn("初始化 SunJSSE SSLContext 失败，回退默认: {}", e.getMessage());
             return HttpsURLConnection.getDefaultSSLSocketFactory();
+        }
+    }
+
+    private static class RestrictedSslSocketFactory extends SSLSocketFactory {
+        private static final String[] ALLOWED_GROUPS = {"secp256r1", "secp384r1", "secp521r1"};
+        private static final String[] TLS_PROTOCOLS = {"TLSv1.2"};
+        private final SSLSocketFactory delegate;
+
+        private RestrictedSslSocketFactory(SSLSocketFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public String[] getDefaultCipherSuites() {
+            return delegate.getDefaultCipherSuites();
+        }
+
+        @Override
+        public String[] getSupportedCipherSuites() {
+            return delegate.getSupportedCipherSuites();
+        }
+
+        @Override
+        public java.net.Socket createSocket(java.net.Socket s, String host, int port, boolean autoClose) throws IOException {
+            java.net.Socket socket = delegate.createSocket(s, host, port, autoClose);
+            return configureSocket(socket);
+        }
+
+        @Override
+        public java.net.Socket createSocket(String host, int port) throws IOException {
+            return configureSocket(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public java.net.Socket createSocket(String host, int port, java.net.InetAddress localHost, int localPort) throws IOException {
+            return configureSocket(delegate.createSocket(host, port, localHost, localPort));
+        }
+
+        @Override
+        public java.net.Socket createSocket(java.net.InetAddress host, int port) throws IOException {
+            return configureSocket(delegate.createSocket(host, port));
+        }
+
+        @Override
+        public java.net.Socket createSocket(java.net.InetAddress address, int port, java.net.InetAddress localAddress, int localPort) throws IOException {
+            return configureSocket(delegate.createSocket(address, port, localAddress, localPort));
+        }
+
+        private java.net.Socket configureSocket(java.net.Socket socket) {
+            if (socket instanceof SSLSocket) {
+                SSLSocket sslSocket = (SSLSocket) socket;
+                sslSocket.setEnabledProtocols(TLS_PROTOCOLS);
+                javax.net.ssl.SSLParameters params = sslSocket.getSSLParameters();
+                try {
+                    java.lang.reflect.Method method = params.getClass().getMethod("setNamedGroups", String[].class);
+                    method.invoke(params, (Object) ALLOWED_GROUPS);
+                } catch (Exception ignored) {
+                }
+                sslSocket.setSSLParameters(params);
+            }
+            return socket;
         }
     }
 

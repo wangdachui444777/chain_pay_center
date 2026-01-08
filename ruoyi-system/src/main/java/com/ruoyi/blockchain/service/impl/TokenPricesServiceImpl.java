@@ -132,7 +132,7 @@ public class TokenPricesServiceImpl implements ITokenPricesService
     public List<TokenPrices> getEnabledTokens(String chainType) {
         TokenPrices w=new TokenPrices();
         PageHelper.orderBy("is_main_coin asc");
-        PageHelper.offsetPage(0,1);
+        PageHelper.offsetPage(0,20);
         if (StringUtils.isNotBlank(chainType)){
             w.setChainType(chainType.toUpperCase());
         }
