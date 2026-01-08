@@ -30,5 +30,11 @@ public class ChainTypeConfirmations {
                 return 12;
         }
     }
+    public static boolean hasTestNetWork(String apiUrl) {
+        if (apiUrl.contains("nile")) {
+            return true;
+        }
+        return false;
+    }
 
 }

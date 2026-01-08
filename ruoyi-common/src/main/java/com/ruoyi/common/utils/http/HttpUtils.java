@@ -39,6 +39,8 @@ public class HttpUtils {
     // 默认超时时间（毫秒）
     private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     private static final int DEFAULT_READ_TIMEOUT = 50000;
+    // 强制使用 JDK 自带 SunJSSE，避免 BC Provider 造成 TLS 握手类型不匹配
+    private static final javax.net.ssl.SSLSocketFactory DEFAULT_SSL_SOCKET_FACTORY = buildDefaultSslSocketFactory();
 
     /**
      * 发送 GET 请求
@@ -91,6 +93,9 @@ public class HttpUtils {
 
             URL realUrl = new URL(urlNameString);
             URLConnection connection = realUrl.openConnection();
+            if (connection instanceof HttpsURLConnection) {
+                ((HttpsURLConnection) connection).setSSLSocketFactory(DEFAULT_SSL_SOCKET_FACTORY);
+            }
 
             // 设置默认请求头
             connection.setRequestProperty("accept", "*/*");
@@ -193,6 +198,9 @@ public class HttpUtils {
            // log.info("sendPost - {}", url);
             URL realUrl = new URL(url);
             URLConnection conn = realUrl.openConnection();
+            if (conn instanceof HttpsURLConnection) {
+                ((HttpsURLConnection) conn).setSSLSocketFactory(DEFAULT_SSL_SOCKET_FACTORY);
+            }
 
             // 设置默认请求头
             conn.setRequestProperty("accept", "*/*");
@@ -219,12 +227,18 @@ public class HttpUtils {
             out.print(param);
             out.flush();
 
-            in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+            int status = ((java.net.HttpURLConnection) conn).getResponseCode();
+            InputStream respStream = (status >= 200 && status < 300)
+                    ? conn.getInputStream()
+                    : ((java.net.HttpURLConnection) conn).getErrorStream();
+            in = new BufferedReader(new InputStreamReader(respStream, StandardCharsets.UTF_8));
             String line;
             while ((line = in.readLine()) != null) {
                 result.append(line);
             }
-            //log.debug("recv - {}", result);
+            if (status < 200 || status >= 300) {
+                log.error("HttpUtils.sendPost 非 2xx 响应, status={}, url={}, param={}, body={}", status, url, param, result);
+            }
         } catch (ConnectException e) {
             log.error("调用 HttpUtils.sendPost ConnectException, url=" + url + ", param=" + param, e);
         } catch (SocketTimeoutException e) {
@@ -238,6 +252,20 @@ public class HttpUtils {
             closeQuietly(in);
         }
         return result.toString();
+    }
+
+    /**
+     * 构建使用 SunJSSE 的默认 SSL 工厂，避免被 BC Provider 接管导致 XDH 类型冲突
+     */
+    private static javax.net.ssl.SSLSocketFactory buildDefaultSslSocketFactory() {
+        try {
+            SSLContext sc = SSLContext.getInstance("TLS", "SunJSSE");
+            sc.init(null, null, null);
+            return sc.getSocketFactory();
+        } catch (Exception e) {
+            log.warn("初始化 SunJSSE SSLContext 失败，回退默认: {}", e.getMessage());
+            return HttpsURLConnection.getDefaultSSLSocketFactory();
+        }
     }
 
     /**

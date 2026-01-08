@@ -27,29 +27,38 @@ import com.ruoyi.common.utils.http.HttpUtils;
  */
 public class CatFeeApiClient {
 
+    //正式环境
     //private static final String BASE_URL = "https://api.catfee.io";
-
-    private static final String BASE_URL = " https://nile.catfee.io";
+    //测试环境
+    private  String BASE_URL;
     private static final String ORDER_ENDPOINT = "/v1/order";
     private static final String BALANCE_ENDPOINT = "/v1/balance";
 
     private final String apiKey;
     private final String apiSecret;
-    private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    //测试环境
     public static CatFeeApiClient me=new CatFeeApiClient(
             "f60c3254-7594-4605-94eb-4a02909f50b1",
-            "832ebe94ea7483148e11a6e1e472413b"
+            "832ebe94ea7483148e11a6e1e472413b",
+            "https://nile.catfee.io"
     );
+    //正式环境
+    public static CatFeeApiClient meTest=new CatFeeApiClient(
+            "51f2eb32-76e8-481a-9e25-22cd1fa3a54e",
+            "a3815635be3c7c5959f4c0324de37722",
+            "https://api.catfee.io"
+    );
+
     /**
      * 构造函数
      * @param apiKey API密钥
      * @param apiSecret API密钥对应的Secret
      */
-    private CatFeeApiClient(String apiKey, String apiSecret) {
+    private CatFeeApiClient(String apiKey, String apiSecret,String baseUrl) {
         this.apiKey = apiKey;
         this.apiSecret = apiSecret;
-        this.httpClient = HttpClient.newHttpClient();
+        this.BASE_URL = baseUrl;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -551,7 +560,7 @@ public class CatFeeApiClient {
         String secret="832ebe94ea7483148e11a6e1e472413b";
         String addr="TYc9sdWrstzUfDvF3WUKd6BJ4ndY5G7rFZ";
 
-        CatFeeApiClient catFeeApiClient=new CatFeeApiClient(apiKey,secret);
+        CatFeeApiClient catFeeApiClient=CatFeeApiClient.meTest;
         try {
           // CatFeeApiClient.ApiResponse res=catFeeApiClient.createEnergyOrder(65000,addr,"1h");
             CatFeeApiClient.ApiResponse<OrderDetail> res=  catFeeApiClient.getOrderDetail("b43de41a-1c87-4578-a66a-f5ed43648156");

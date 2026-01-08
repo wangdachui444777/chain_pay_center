@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ruoyi.bc.component.CatFeeApiClient;
 import com.ruoyi.bc.component.ComponentBlockChainService;
+import com.ruoyi.bc.config.ChainTypeConfirmations;
 import com.ruoyi.bc.service.IBlockChainApiService;
 import com.ruoyi.blockchain.domain.ApiBcTransaction;
 import com.ruoyi.blockchain.domain.BcApiKeys;
@@ -49,6 +50,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
     // 单例实例（volatile 保证线程安全）
     private static volatile BlockChainTronApiService instance;
 
+    private boolean isTest=false;
     // 构造方法私有化
     private BlockChainTronApiService(ITokenPricesService tokenPriceService, IBcApiKeysService apiKeyService) {
         this.tokenPriceService = tokenPriceService;
@@ -94,10 +96,13 @@ public class BlockChainTronApiService implements IBlockChainApiService {
             // 从缓存获取或创建新的 Web3j 实例
             ApiWrapper apiWrapper = apiWrapperCache.computeIfAbsent(cacheKey, k -> {
                 // Nile 测试网
-                if (apiKey.getApiUrl().contains("nile")) {
-                    return new ApiWrapper("grpc.nile.trongrid.io:50051","grpc.nile.trongrid.io:50061","");
+                if (ChainTypeConfirmations.hasTestNetWork(apiKey.getApiUrl())) {
+                    //return new ApiWrapper("grpc.nile.trongrid.io:50051","grpc.nile.trongrid.io:50061","");
+                    isTest=true;
+                    return ApiWrapper.ofNile("");
                 }
                 // 主网（推荐使用 API Key）
+                isTest=false;
                 return ApiWrapper.ofMainnet("", apiKey.getApiKey());
             });
             // 绑定 apiKeyId，如果已有映射且不相同就更新
@@ -327,7 +332,12 @@ public class BlockChainTronApiService implements IBlockChainApiService {
     private String sendEnergy(String address,Long gas){
         try {
             CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderResult> res=null;
-            res= CatFeeApiClient.me.createEnergyOrder(gas,address,"1h");
+            if (isTest){
+                res= CatFeeApiClient.meTest.createEnergyOrder(gas,address,"1h");
+            }else{
+                res= CatFeeApiClient.me.createEnergyOrder(gas,address,"1h");
+            }
+
             if (res.isSuccess()){
                 return res.getData().getId();
             }
@@ -353,7 +363,12 @@ public class BlockChainTronApiService implements IBlockChainApiService {
 
         try {
             CatFeeApiClient.ApiResponse<CatFeeApiClient.OrderDetail> res=null;
-            res= CatFeeApiClient.me.getOrderDetail(txId);
+            if (isTest){
+                res= CatFeeApiClient.meTest.getOrderDetail(txId);
+            }else{
+                res= CatFeeApiClient.me.getOrderDetail(txId);
+            }
+
             if (!res.isSuccess()){
                 result.put("success", false);
                 return result;
@@ -813,7 +828,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
     private String signTransaction(String fromAddress, String privateKey, BigInteger gasLimit, String contractAddress, Function function) {
         ApiWrapper wrapper = getApiWrapper();
         setApiCount(wrapper);
-        Response.TransactionExtention transaction = wrapper.constantCall(fromAddress, contractAddress, function);
+        Response.TransactionExtention transaction = wrapper.triggerConstantContract(fromAddress, contractAddress, function);
         TransactionBuilder builder = new TransactionBuilder(transaction.getTransaction());
 
         KeyPair key=new KeyPair(privateKey);
