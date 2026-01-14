@@ -111,7 +111,7 @@ public class ChainWithdrawTask {
         Map<String, Object> callbackData = buildCallbackData(record);
         // 执行回调
 
-        boolean success = CallBackUtils.executeCallback(callbackData, platform);
+        boolean success = CallBackUtils.executeCallback(callbackData, platform,platform.getWithdrawUrl().trim());
         if (success) {
             updateStatus(record.getId(),"2");
         } else {

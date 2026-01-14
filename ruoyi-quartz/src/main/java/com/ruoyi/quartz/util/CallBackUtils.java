@@ -51,7 +51,7 @@ public class CallBackUtils {
     /**
      * 执行HTTP回调通知
      */
-    public static boolean executeCallback( Map<String, Object> callbackData, Platforms platform) {
+    public static boolean executeCallback( Map<String, Object> callbackData, Platforms platform,String callBackUrl) {
         try {
             // 构建回调参数
             //Map<String, Object> callbackData = buildCallbackData(record);
@@ -60,10 +60,10 @@ public class CallBackUtils {
             callbackData.put("sign", sign);
 
             // 发送HTTP请求
-            String body= HttpUtils.sendPost(platform.getWithdrawUrl(),callbackData);
+            String body= HttpUtils.sendPost(callBackUrl,callbackData);
 
             //log.info("发送回调请求，URL:{}, 数据:{}", platform.getWithdrawUrl(), callbackData);
-            if ("SUCCESS".equalsIgnoreCase(body != null ? body.trim() : "")) {
+            if ("SUCCESS".equalsIgnoreCase(body.trim())) {
               //  log.info("回调成功，响应内容：SUCCESS");
                 return true;
             } else {

@@ -141,7 +141,7 @@ public class TransactionCallbackTask {
             // 构建回调参数
             Map<String, Object> callbackData = buildCallbackData(transaction);
             // 执行回调
-            boolean success = CallBackUtils.executeCallback(callbackData, platform);
+            boolean success = CallBackUtils.executeCallback(callbackData, platform,platform.getCallbackUrl().trim());
 
             if (success) {
                 // 回调成功

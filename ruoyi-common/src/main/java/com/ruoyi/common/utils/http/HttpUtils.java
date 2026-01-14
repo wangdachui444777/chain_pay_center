@@ -204,6 +204,7 @@ public class HttpUtils {
             URLConnection conn = realUrl.openConnection();
             if (conn instanceof HttpsURLConnection) {
                 ((HttpsURLConnection) conn).setSSLSocketFactory(STRICT_SSL_SOCKET_FACTORY);
+                ((HttpsURLConnection) conn).setRequestMethod("POST");
             }
 
             // 设置默认请求头
@@ -223,7 +224,6 @@ public class HttpUtils {
             // 设置超时
             conn.setConnectTimeout(DEFAULT_CONNECT_TIMEOUT);
             conn.setReadTimeout(DEFAULT_READ_TIMEOUT);
-
             conn.setDoOutput(true);
             conn.setDoInput(true);
 
