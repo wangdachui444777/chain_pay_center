@@ -94,6 +94,7 @@ public class ComponentBlockChainService {
                 log.warn("获取最新区块失败");
                 return;
             }
+            redisService.saveNewBlock(chainType,latestBlock);
             // 2. 获取上次扫描的区块
             Long lastScannedBlock = redisService.getLatestBlock(chainType);
             if (lastScannedBlock == 0) {
@@ -124,7 +125,7 @@ public class ComponentBlockChainService {
 
             //记录最后的块
             redisService.saveLatestBlock(chainType, endBlock);
-            redisService.saveNewBlock(chainType,latestBlock);
+
             log.info(" {} 扫描完成: 区块 {} -> {}",chainType, startBlock, endBlock);
 
         } catch (Exception e) {

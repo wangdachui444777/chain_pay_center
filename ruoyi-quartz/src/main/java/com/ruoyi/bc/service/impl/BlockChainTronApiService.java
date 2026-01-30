@@ -165,22 +165,29 @@ public class BlockChainTronApiService implements IBlockChainApiService {
 
         List<ApiBcTransaction> transactionList = new ArrayList<>();
         //可以替换成获取单条的
+        log.debug("调用getBlockByLimitNext  区块 {} - {} ", startBlockNum, endBlockNum);
         JSONArray txBlocks = this.getBlockByLimitNext(startBlockNum, endBlockNum);
+        log.debug("完成调用getBlockByLimitNext  区块 {} - {} ", startBlockNum, endBlockNum);
         if (txBlocks == null || txBlocks.isEmpty()) {
             log.warn("区块 {} - {} 数据为空", startBlockNum, endBlockNum);
             return transactionList;
         }
+        log.debug("开始解析body  ");
         for (int i = 0; i < txBlocks.size(); i++) {
             JSONObject block = txBlocks.getJSONObject(i);
             long number = block.getJSONObject("block_header").getJSONObject("raw_data").getLong("number");
-
+            log.debug("开始解析tronTransactions  ");
+            JSONArray txList = block.getJSONArray("transactions");
             List<TronTransaction> tronTransactions = parseBlockTransactions(block, number);
             if (tronTransactions.size() > 0) {
                 transactionList.addAll(tronTransactions);
             }
+            log.debug("解析tronTransactions完成");
         }
+        log.debug("解析body完成  ");
         //保存数据
         handlerChainService.HandlerSaveTransaction(transactionList, CHAIN_TYPE);
+        log.debug("保存数据完成 HandlerSaveTransaction  ");
         return transactionList;
     }
 
@@ -420,7 +427,6 @@ public class BlockChainTronApiService implements IBlockChainApiService {
 
             for (int i = 0; i < txList.size(); i++) {
                 JSONObject tx = txList.getJSONObject(i);
-
                 TronTransaction parsedTx = parseTransaction(tx, blockNumber);
                 if (parsedTx != null) {
                     transactions.add(parsedTx);
@@ -438,8 +444,10 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * 解析单个交易
      */
     private TronTransaction parseTransaction(JSONObject tx, Long blockNumber) {
+        String contractType = null;
+        String txId = null;
         try {
-            String txId = tx.getString("txID");
+            txId = tx.getString("txID");
 
             // 获取交易状态
             JSONArray ret = tx.getJSONArray("ret");
@@ -460,7 +468,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
                 return null;
             }
             JSONObject contract = contractList.getJSONObject(0);
-            String contractType = contract.getString("type");
+            contractType = contract.getString("type");
             JSONObject parameter = contract.getJSONObject("parameter");
             JSONObject value = parameter.getJSONObject("value");
 
@@ -533,14 +541,6 @@ public class BlockChainTronApiService implements IBlockChainApiService {
     private TronTransaction parseTrc20TransferFromData(String txId, Long blockNumber,
                                                        JSONObject value, boolean isSuccess, Long timestamp) {
         try {
-            String contractAddress = value.getString("contract_address");
-            String contractBase58 = hexAddressToBase58(contractAddress);
-
-            // 从数据库获取代币配置
-            TokenPrices tokenConfig = tokenPriceService.getTokenCacheByContractAddress(contractBase58);
-            if (tokenConfig == null || tokenConfig.getEnabled() != 1) {
-                return null;
-            }
 
             String data = value.getString("data");
             if (data == null || data.length() < 8) {
@@ -557,6 +557,14 @@ public class BlockChainTronApiService implements IBlockChainApiService {
             // data格式: a9059cbb + 64位to地址 + 64位金额
             if (data.length() < 136) {
                 log.warn("data长度不足: {}", data);
+                return null;
+            }
+
+            String contractAddress = value.getString("contract_address");
+            String contractBase58 = hexAddressToBase58(contractAddress);
+            // 从数据库获取代币配置
+            TokenPrices tokenConfig = tokenPriceService.getTokenCacheByContractAddress(contractBase58);
+            if (tokenConfig == null || tokenConfig.getEnabled() != 1) {
                 return null;
             }
 
@@ -993,12 +1001,14 @@ public class BlockChainTronApiService implements IBlockChainApiService {
         }
         try {
             String fullUrl = apiKey.getApiUrl() + url;
+            log.debug("使用trx接口,url {} ", fullUrl);
             Map<String, String> headers = new HashMap<>();
             String body = "";
             // 添加 API Key 到请求头
             if (StringUtils.isNotBlank(apiKey.getApiKey())) {
                 headers.put("TRON-PRO-API-KEY", apiKey.getApiKey());
             }
+            log.debug("使用trxkey,url {} ", apiKey.getApiKey());
             if (isPost) {
                 // 设置请求体
                 String jsonBody = "";
@@ -1015,9 +1025,10 @@ public class BlockChainTronApiService implements IBlockChainApiService {
             } else {
                 body = HttpUtils.sendGet(url, null, headers);
             }
+            log.debug("executeRequest请求完成  ");
             // 记录使用
             apiKeyService.recordUsage(apiKey.getId());
-
+            log.debug("recordUsage 请求完成  ");
             return body;
 
         } catch (Exception e) {

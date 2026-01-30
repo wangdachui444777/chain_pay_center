@@ -18,10 +18,10 @@ public class ChainTypeConfirmations {
         switch (chainType.toUpperCase()) {
             case "TRX":
             case "TRON":
-                return 19; // TRON 19个确认
+                return 9; // TRON 19个确认
             case "ETH":
             case "ETHEREUM":
-                return 12; // ETH 12个确认
+                return 4; // ETH 12个确认
             case "BSC":
                 return 15; // BSC 15个确认
             case "BTC":
