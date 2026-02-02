@@ -58,6 +58,21 @@ public interface ITokenPricesService
      * @return
      */
     public TokenPrices getTokenCacheByContractAddress(String contractAddress);
+
+    /**
+     * 获取链参数缓存
+     * @param key
+     * @return
+     */
+    java.math.BigDecimal getChainParamCache(String key);
+
+    /**
+     * 设置链参数缓存
+     * @param key
+     * @param value
+     * @param timeoutSeconds
+     */
+    void setChainParamCache(String key, java.math.BigDecimal value, long timeoutSeconds);
     /**
      * 新增币种配置
      * 

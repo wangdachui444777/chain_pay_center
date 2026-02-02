@@ -48,6 +48,8 @@ public class BlockChainTronApiService implements IBlockChainApiService {
 
 
     private static final String CHAIN_TYPE = "TRX";
+    private static final String TRON_ENERGY_PRICE_CACHE_KEY = "trx:energy_fee";
+    private static final int TRON_ENERGY_PRICE_CACHE_TTL_SECONDS = 3600;
     // 单例实例（volatile 保证线程安全）
     private static volatile BlockChainTronApiService instance;
 
@@ -202,10 +204,27 @@ public class BlockChainTronApiService implements IBlockChainApiService {
             if (hasEnergy){
                 return new BigDecimal("65000");
             }
-            BigDecimal gasLimit = gas.multiply(gasPrice).multiply(BigDecimal.TEN);
-            //System.out.println("gasLimit="+gasLimit);
-            BigDecimal feeTrx= gasLimit.divide(BigDecimal.TEN.pow(6)).setScale(5, RoundingMode.DOWN);
-            return feeTrx;
+            if (gas == null || gas.compareTo(BigDecimal.ZERO) <= 0) {
+                return BigDecimal.ZERO;
+            }
+            BigDecimal minFee = gas.compareTo(new BigDecimal("100000")) >= 0
+                    ? new BigDecimal("14")
+                    : new BigDecimal("7");
+            BigDecimal maxFee = new BigDecimal("14");
+            if (gasPrice != null && gas != null) {
+                BigDecimal feeSun = gas.multiply(gasPrice);
+                BigDecimal feeTrx = feeSun.divide(BigDecimal.TEN.pow(6), 6, RoundingMode.UP);
+                // 适度放大，避免手续费不足
+                feeTrx = feeTrx.multiply(new BigDecimal("1.05")).setScale(5, RoundingMode.UP);
+                if (feeTrx.compareTo(minFee) < 0) {
+                    feeTrx = minFee;
+                }
+                if (feeTrx.compareTo(maxFee) > 0) {
+                    feeTrx = maxFee;
+                }
+                return feeTrx;
+            }
+            return minFee;
         }catch (Exception e){
             return new BigDecimal("14");
         }
@@ -218,8 +237,15 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @param method
      * @return
      */
-    public BigDecimal getGas(String fromAddr ,String contractAddr,String method){
-       return getGasApi(fromAddr,contractAddr,method);
+    public BigDecimal getGas(String fromAddr ,String contractAddr,String method,String toAddr, BigDecimal amount){
+       BigInteger amountWei = null;
+       if (StringUtils.isNotBlank(contractAddr) && amount != null) {
+           TokenPrices tokenConfig = tokenPriceService.getTokenCacheByContractAddress(contractAddr);
+           if (tokenConfig != null) {
+               amountWei = amount.multiply(BigDecimal.TEN.pow(tokenConfig.getDecimals())).toBigInteger();
+           }
+       }
+       return getGasApi(fromAddr,contractAddr,method,toAddr,amountWei);
     }
 
     /**
@@ -227,6 +253,31 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @return
      */
     public BigDecimal getGasPrice(){
+        return getEnergyPrice();
+    }
+
+    private BigDecimal getEnergyPrice() {
+        BigDecimal cached = tokenPriceService.getChainParamCache(TRON_ENERGY_PRICE_CACHE_KEY);
+        if (cached != null && cached.compareTo(BigDecimal.ZERO) > 0) {
+            return cached;
+        }
+        try {
+            String body = executeRequest("/wallet/getchainparameters", null, true);
+            JSONObject json = JSON.parseObject(body);
+            if (json != null && json.containsKey("chainParameter")) {
+                JSONArray params = json.getJSONArray("chainParameter");
+                for (int i = 0; i < params.size(); i++) {
+                    JSONObject item = params.getJSONObject(i);
+                    if ("getEnergyFee".equalsIgnoreCase(item.getString("key"))) {
+                        BigDecimal price = new BigDecimal(item.getString("value"));
+                        tokenPriceService.setChainParamCache(TRON_ENERGY_PRICE_CACHE_KEY, price, TRON_ENERGY_PRICE_CACHE_TTL_SECONDS);
+                        return price;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("TRON 获取能量价格失败，使用默认值", e);
+        }
         return new BigDecimal("420");
     }
 
@@ -256,7 +307,7 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @return
      */
     public String transferToken(String fromAddr,String fromPrv,String contractAddr,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas){
-        String signedData= sendErc20(fromAddr,fromPrv,contractAddr,toAddr,amount,gas);
+        String signedData= sendErc20(fromAddr,fromPrv,contractAddr,toAddr,amount,gasPrice,gas);
         //transferTokenWithPayer()
         if(signedData!=null){
             return broadcastHex(signedData);
@@ -620,24 +671,29 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @param method
      * @return
      */
-    private BigDecimal getGasApi(String address, String contractAddress, String method) {
+    private BigDecimal getGasApi(String address, String contractAddress, String method, String toAddress, BigInteger amount) {
         if (StringUtils.isBlank(contractAddress)) {
             return BigDecimal.ZERO;
         }
-        method=method.toLowerCase();
         Map<String, Object> map = new HashMap<>();
         map.put("owner_address", address);
         map.put("contract_address", contractAddress);
-        if (method.equals("transferFrom")) {
-            map.put("function_selector", "transferFrom(address,address,uint256)");
-        }
-        if (method.equals("approve")) {
-            map.put("function_selector", "approve(address,uint256)");
-        }
-        if (method.equals("transfer")) {
-            map.put("function_selector", "transfer(address,uint256)");
+        String functionSelector;
+        if (method.equalsIgnoreCase("transferFrom")) {
+            functionSelector = "transferFrom(address,address,uint256)";
+        } else if (method.equalsIgnoreCase("approve")) {
+            functionSelector = "approve(address,uint256)";
+        } else if (method.equalsIgnoreCase("transfer")) {
+            functionSelector = "transfer(address,uint256)";
         } else {
-            map.put("function_selector", method);
+            functionSelector = method;
+        }
+        map.put("function_selector", functionSelector);
+        if ("transfer".equalsIgnoreCase(method) && StringUtils.isNotBlank(toAddress) && amount != null) {
+            String parameter = encodeTransferParams(toAddress, amount);
+            if (StringUtils.isNotBlank(parameter)) {
+                map.put("parameter", parameter);
+            }
         }
         map.put("visible", "true");
         try {
@@ -645,12 +701,36 @@ public class BlockChainTronApiService implements IBlockChainApiService {
             JSONObject node = JSON.parseObject(body);
             if (node != null && node.containsKey("energy_used")) {
                 int energy_used = node.getIntValue("energy_used");
-                return BigDecimal.valueOf(energy_used).multiply(BigDecimal.valueOf(1.2));
+                return BigDecimal.valueOf(energy_used);
             }
         } catch (Exception ex) {
-            ex.fillInStackTrace();
+            log.warn("TRON 能量估算失败，使用兜底值: method={}, contract={}", method, contractAddress, ex);
         }
-        return BigDecimal.valueOf(65000L);
+        // 兜底能量（估算失败时使用，避免手续费不足）
+        return BigDecimal.valueOf(33000L);
+    }
+
+    private String encodeTransferParams(String toAddress, BigInteger amount) {
+        try {
+            Function function = new Function("transfer",
+                    Arrays.asList(new Address(toAddress), new Uint256(amount)),
+                    Arrays.asList(new TypeReference<Bool>() {
+                    }));
+            String encoded = FunctionEncoder.encode(function);
+            if (StringUtils.isBlank(encoded)) {
+                return null;
+            }
+            if (encoded.startsWith("0x")) {
+                encoded = encoded.substring(2);
+            }
+            if (encoded.length() <= 8) {
+                return null;
+            }
+            return encoded.substring(8);
+        } catch (Exception e) {
+            log.warn("TRON 参数编码失败: to={}, amount={}", toAddress, amount, e);
+            return null;
+        }
     }
 
 
@@ -694,21 +774,30 @@ public class BlockChainTronApiService implements IBlockChainApiService {
      * @param amount
      * @return
      */
-    private String sendErc20(String fromAddr,String fromPrv,String contractAddress,String toAddr,BigDecimal amount,BigDecimal gas){
+    private String sendErc20(String fromAddr,String fromPrv,String contractAddress,String toAddr,BigDecimal amount,BigDecimal gasPrice,BigDecimal gas){
         // 获取主币配置
         TokenPrices tokenConfig = tokenPriceService.getTokenCacheByContractAddress(contractAddress);
         if (tokenConfig == null || tokenConfig.getEnabled() != 1) {
             return null;
         }
         BigInteger amountWei = amount.multiply(BigDecimal.TEN.pow(tokenConfig.getDecimals())).toBigInteger();
-        //ApiWrapper wrapper = getApiWrapper();
+        if (gasPrice == null) {
+            gasPrice = getGasPrice();
+        }
         try {
-            BigDecimal gasLimit=  gas;
+            BigDecimal gasLimitSun = gas.multiply(gasPrice).multiply(new BigDecimal("1.2")).setScale(0, RoundingMode.UP);
+            BigDecimal minFee = gas.compareTo(new BigDecimal("100000")) >= 0
+                    ? new BigDecimal("13.75")
+                    : new BigDecimal("6.5");
+            BigDecimal minFeeSun = minFee.multiply(BigDecimal.TEN.pow(6));
+            if (gasLimitSun.compareTo(minFeeSun) < 0) {
+                gasLimitSun = minFeeSun;
+            }
             Function function = new Function("transfer",
                     Arrays.asList(new Address(toAddr), new Uint256(amountWei)),
                     Arrays.asList(new TypeReference<Bool>() {
                     }));
-            return signTransaction(fromAddr, fromPrv, gasLimit.toBigInteger(),tokenConfig.getTokenContract(), function);
+            return signTransaction(fromAddr, fromPrv, gasLimitSun.toBigInteger(),tokenConfig.getTokenContract(), function);
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

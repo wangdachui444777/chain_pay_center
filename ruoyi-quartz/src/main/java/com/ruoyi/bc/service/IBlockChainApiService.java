@@ -29,7 +29,7 @@ public interface IBlockChainApiService {
      * @param method
      * @return
      */
-     BigDecimal getGas(String fromAddr ,String contractAddr,String method);
+     BigDecimal getGas(String fromAddr ,String contractAddr,String method,String toAddr, java.math.BigDecimal amount);
 
     /**
      * 检测交易后的状态

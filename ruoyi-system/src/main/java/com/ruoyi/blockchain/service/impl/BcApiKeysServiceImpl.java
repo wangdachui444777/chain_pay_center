@@ -184,8 +184,11 @@ public class BcApiKeysServiceImpl implements IBcApiKeysService
     private void deleteCache(){
         // 清理缓存
         String key=CACHE_KEY_PREFIX + "*";
-        redisCache.deleteObject(redisCache.keys(key));
-        redisCache.deleteObject(redisCache.keys(CACHE_LIST_PREFIX + "*"));
+        //redisCache.deleteObject(redisCache.keys(key));
+        Collection<String> cacheKeys = redisCache.keys(key);
+        redisCache.deleteObject(cacheKeys);
+        cacheKeys = redisCache.keys(CACHE_LIST_PREFIX+"*");
+        redisCache.deleteObject(cacheKeys);
     }
 
     /**

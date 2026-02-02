@@ -7,6 +7,7 @@ import com.ruoyi.blockchain.domain.*;
 import com.ruoyi.blockchain.service.ITokenPricesService;
 import com.ruoyi.blockchain.service.IUserAddressesService;
 import com.ruoyi.common.utils.DateUtils;
+import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.bean.BeanUtils;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,6 +118,10 @@ public class AddressBalancesServiceImpl implements IAddressBalancesService
             consolidationDetail.setTokenContract(ab.getTokenContract());
             consolidationDetail.setStartTime(DateUtils.getNowDate());
             consolidationDetail.setCreateTime(DateUtils.getNowDate());
+            // 主币不需要手续费，直接标记为已确认；代币需要先发手续费
+            consolidationDetail.setGasTxStatus(StringUtils.isEmpty(ab.getTokenContract()) ? "2" : "0");
+            consolidationDetail.setTxStatus("0");
+            consolidationDetail.setStatus("0");
             detailList.add(consolidationDetail);
             //修改为归集中。
             this.updateAddressStatus(ab.getId(),"1");

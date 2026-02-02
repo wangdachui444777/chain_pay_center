@@ -1,6 +1,7 @@
 package com.ruoyi.blockchain.service.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -195,8 +196,8 @@ public class BcFeeSourceAddressesServiceImpl implements IBcFeeSourceAddressesSer
         return key.toLowerCase();
     }
     private void clearCache(){
-        String key=PAY_FEE_PREFIX+"*";
-        redisCache.deleteObject(redisCache.getCacheSet(key));
+        Collection<String> cacheKeys = redisCache.keys(PAY_FEE_PREFIX + "*");
+        redisCache.deleteObject(cacheKeys);
     }
     /**
      * 批量删除付款地址

@@ -199,7 +199,7 @@ public class BlockChainEthApiService implements IBlockChainApiService {
      * @param method
      * @return
      */
-    public BigDecimal getGas(String fromAddr ,String contractAddr,String method){
+    public BigDecimal getGas(String fromAddr ,String contractAddr,String method,String toAddr, BigDecimal amount){
         return getGasLimit(contractAddr,method);
     }
 

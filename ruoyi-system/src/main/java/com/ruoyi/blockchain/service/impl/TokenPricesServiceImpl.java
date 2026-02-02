@@ -1,7 +1,9 @@
 package com.ruoyi.blockchain.service.impl;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.github.pagehelper.PageHelper;
 import com.ruoyi.common.core.redis.RedisCache;
@@ -36,6 +38,8 @@ public class TokenPricesServiceImpl implements ITokenPricesService
 
     /** 币种配置 */
     public static final String TOKEN_PREFIX = "bc:token:";
+    /** 链参数缓存 */
+    public static final String CHAIN_PARAM_PREFIX = "bc:chainparam:";
     /**
      * 查询币种配置
      * 
@@ -101,6 +105,34 @@ public class TokenPricesServiceImpl implements ITokenPricesService
     public TokenPrices getTokenCacheByContractAddress(String contractAddress){
         String key=TOKEN_PREFIX+contractAddress.toLowerCase();
         return redisCache.getCacheObject(key);
+    }
+
+    /**
+     * 获取链参数缓存
+     * @param key
+     * @return
+     */
+    @Override
+    public BigDecimal getChainParamCache(String key){
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        return redisCache.getCacheObject(CHAIN_PARAM_PREFIX + key);
+    }
+
+    /**
+     * 设置链参数缓存
+     * @param key
+     * @param value
+     * @param timeoutSeconds
+     */
+    @Override
+    public void setChainParamCache(String key, BigDecimal value, long timeoutSeconds){
+        if (StringUtils.isBlank(key) || value == null) {
+            return;
+        }
+        int ttlSeconds = (int) Math.min(timeoutSeconds, Integer.MAX_VALUE);
+        redisCache.setCacheObject(CHAIN_PARAM_PREFIX + key, value, ttlSeconds, TimeUnit.SECONDS);
     }
 
     /**

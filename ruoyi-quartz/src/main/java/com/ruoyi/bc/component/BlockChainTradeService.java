@@ -182,12 +182,24 @@ public class BlockChainTradeService {
         if (consolidationDetails.isEmpty()){
             return;
         }
+        // 先处理代币归集，避免主币先转走导致代币无手续费
+        List<BcConsolidationDetail> orderedDetails = new ArrayList<>(consolidationDetails.size());
+        for (BcConsolidationDetail detail : consolidationDetails) {
+            if (StringUtils.isNotEmpty(detail.getTokenContract())) {
+                orderedDetails.add(detail);
+            }
+        }
+        for (BcConsolidationDetail detail : consolidationDetails) {
+            if (StringUtils.isEmpty(detail.getTokenContract())) {
+                orderedDetails.add(detail);
+            }
+        }
         IBlockChainApiService apiService = bcService(chainType);
         BigDecimal    gasPrice = apiService.getGasPrice();
         BigDecimal gasLimit=BigDecimal.ONE;
         BigDecimal gasTokenLimit=BigDecimal.ONE;
 
-        for (BcConsolidationDetail detail:consolidationDetails) {
+        for (BcConsolidationDetail detail:orderedDetails) {
             String fromAddr=detail.getFromAddress();
             String toAddr=detail.getToAddress();
             Long addrId=detail.getAddressId();
@@ -202,6 +214,7 @@ public class BlockChainTradeService {
                 continue;
             }
             BigDecimal amount=balances.getBalance();
+            BigDecimal sendAmount = amount;
             String fromPrv = EncryptUtils.desDecryption_new(userAddresses.getPrivateKey(), fromAddr);
             if (fromPrv==null){
                 continue;
@@ -209,13 +222,28 @@ public class BlockChainTradeService {
             String txId=null;
             if (StringUtils.isEmpty(detail.getTokenContract())){
                 if (gasLimit.compareTo(BigDecimal.ONE)==0) {
-                    gasLimit = apiService.getGas(fromAddr, null, "transfer");
+                    gasLimit = apiService.getGas(fromAddr, null, "transfer", toAddr, BigDecimal.ONE);
                 }
-                txId= apiService.transfer(fromAddr,fromPrv,toAddr,amount,gasPrice,gasLimit);
+                BigDecimal fee = apiService.getFee(gasPrice, gasLimit, false);
+                if (fee.compareTo(BigDecimal.ZERO) > 0) {
+                    sendAmount = amount.subtract(fee);
+                    if (sendAmount.compareTo(BigDecimal.ZERO) <= 0) {
+                        BcConsolidationDetail update=new BcConsolidationDetail();
+                        update.setId(detail.getId());
+                        update.setTxStatus("3");
+                        update.setStatus("3");
+                        update.setCompleteTime(DateUtils.getNowDate());
+                        update.setErrorMsg("余额不足扣手续费");
+                        detailService.updateBcConsolidationDetail(update);
+                        addressBalancesService.updateAddressStatus(detail.getAddressBalanceId(),"0");
+                        continue;
+                    }
+                }
+                txId= apiService.transfer(fromAddr,fromPrv,toAddr,sendAmount,gasPrice,gasLimit);
             }else{
                 String contractAddr=detail.getTokenContract();
                 if (gasTokenLimit.compareTo(BigDecimal.ONE)==0) {
-                    gasTokenLimit = apiService.getGas(fromAddr, contractAddr, "transfer");
+                    gasTokenLimit = apiService.getGas(fromAddr, contractAddr, "transfer", toAddr, amount);
                 }
                 txId= apiService.transferToken(fromAddr,fromPrv,contractAddr,toAddr,amount,gasPrice,gasTokenLimit);
             }
@@ -229,7 +257,7 @@ public class BlockChainTradeService {
             update.setTxHash(txId);
             //归集状态 0=待处理, 1=归集中, 2=已归集,3=失败
             update.setStatus(finalStatus);
-            update.setAmount(amount);
+            update.setAmount(sendAmount);
             if ("3".equals(finalStatus)){
                 update.setCompleteTime(DateUtils.getNowDate());
                 update.setErrorMsg("提交转账失败");
@@ -369,13 +397,13 @@ public class BlockChainTradeService {
             String txHash=null;
             if (StringUtils.isEmpty(record.getTokenContract())){
                 if (gasLimit.compareTo(BigDecimal.ONE)==0) {
-                    gasLimit = apiService.getGas(fromAddr, null, "transfer");
+                    gasLimit = apiService.getGas(fromAddr, null, "transfer", toAddr, BigDecimal.ONE);
                 }
                 txHash=apiService.transfer(fromAddr,fromPrv,toAddr,amount,gasPrice,gasLimit);
             }else{
                 String contractAddr=record.getTokenContract();
                 if (gasTokenLimit.compareTo(BigDecimal.ONE)==0) {
-                    gasTokenLimit = apiService.getGas(fromAddr, contractAddr, "transfer");
+                    gasTokenLimit = apiService.getGas(fromAddr, contractAddr, "transfer", toAddr, amount);
                 }
                 txHash=apiService.transferToken(fromAddr,fromPrv,contractAddr,toAddr,amount,gasPrice,gasTokenLimit);
             }
@@ -510,7 +538,7 @@ public class BlockChainTradeService {
                         // 只取一次 gasLimit（假设同链同代币同方法消耗一致）
                         String contractAddr = detailList.get(0).getTokenContract();
 
-                        gasLimit= apiService.getGas(payAddress, contractAddr, "transfer");
+                        gasLimit= apiService.getGas(payAddress, contractAddr, "transfer", toAddress, BigDecimal.ONE);
 
 
                         fee = apiService.getFee(gasPrice, gasLimit, hasEnergy);
