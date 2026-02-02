@@ -12,7 +12,7 @@ spring:
         druid:
             # 主库数据源
             master:
-                url: jdbc:mysql://10.121.0.3:3306/chain_pay_center?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=Asia/Shanghai
+                url: jdbc:mysql://10.121.0.3:3306/chain_pay_center?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=Asia/Shanghai
                 username: chian_root
                 password: rL2RGZx%nQ.Z2Uop
             # 从库数据源
